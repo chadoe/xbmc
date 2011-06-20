@@ -604,7 +604,17 @@ bool CRenderSystemDX::PresentRenderImpl(const CDirtyRegionList &dirty)
       SetThreadPriority(GetCurrentThread(), priority);
   }
 
-  hr = m_pD3DDevice->Present( NULL, NULL, 0, NULL );
+  IDirect3DSwapChain9* pSwapChain = NULL;
+  hr = m_pD3DDevice->GetSwapChain(0, &pSwapChain);
+  if(FAILED(hr))
+  {
+    CLog::Log(LOGDEBUG, "%s - GetSwapChain failed. %s", __FUNCTION__, GetErrorDescription(hr).c_str());
+    return false;
+  }
+  //if driver supports D3DPRESENT_DONOTWAIT stop it burning cpu 100% waiting to present.
+  //D3DERR_WASSTILLDRAWING means busy processing or waiting for a vertical sync interval
+  while( D3DERR_WASSTILLDRAWING == (hr = pSwapChain->Present(NULL,NULL,NULL,NULL,D3DPRESENT_DONOTWAIT)) )
+    Sleep(1);
 
   if( D3DERR_DEVICELOST == hr )
   {
