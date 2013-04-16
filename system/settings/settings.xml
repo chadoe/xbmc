@@ -854,6 +854,13 @@
           <default>false</default>
           <control type="toggle" />
         </setting>
+        <setting id="myvideos.defaultlibview" type="string" label="0" help="">
+          <level>4</level>
+          <default></default>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+        </setting>
       </group>
     </category>
     <category id="subtitles" label="287" help="36184">

@@ -266,8 +266,7 @@ void CGUIDialogContextMenu::GetContextButtons(const std::string &type, const CFi
         if (plugin->HasSettings())
           buttons.Add(CONTEXT_BUTTON_PLUGIN_SETTINGS, 1045); // Plugin Settings
       }
-      if (type != "video")
-        buttons.Add(CONTEXT_BUTTON_SET_DEFAULT, 13335); // Set as Default
+      buttons.Add(CONTEXT_BUTTON_SET_DEFAULT, 13335); // Set as Default
       if (!share->m_ignore && !isAddon)
         buttons.Add(CONTEXT_BUTTON_REMOVE_SOURCE, 522); // Remove Source
 

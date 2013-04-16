@@ -640,7 +640,7 @@ bool CGUIWindowMusicNav::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
     return true;
 
   case CONTEXT_BUTTON_SET_DEFAULT:
-    CSettings::Get().SetString("mymusic.defaultlibview", GetQuickpathName(item->GetPath()));
+    CSettings::Get().SetString("mymusic.defaultlibview", item->GetPath());
     CSettings::Get().Save();
     return true;
 
