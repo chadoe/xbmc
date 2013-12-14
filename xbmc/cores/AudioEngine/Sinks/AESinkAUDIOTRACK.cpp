@@ -387,7 +387,7 @@ void CAESinkAUDIOTRACK::EnumerateDevicesEx(AEDeviceInfoList &list, bool force)
   m_info.m_dataFormats.clear();
   m_info.m_sampleRates.clear();
 
-  m_info.m_deviceType = AE_DEVTYPE_HDMI;
+    m_info.m_deviceType = AE_DEVTYPE_HDMI;
   m_info.m_deviceName = "AudioTrack";
   m_info.m_displayName = "android";
   m_info.m_displayNameExtra = "audiotrack";
