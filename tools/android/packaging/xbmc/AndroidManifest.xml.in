@@ -37,6 +37,7 @@
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.MONKEY" />
+				<category android:name="tv.ouya.intent.category.APP"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
