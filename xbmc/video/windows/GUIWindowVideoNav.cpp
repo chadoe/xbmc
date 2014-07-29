@@ -956,14 +956,14 @@ void CGUIWindowVideoNav::GetContextButtons(int itemNumber, CContextButtons &butt
 
       //Set default and/or clear default
       NODE_TYPE nodetype = CVideoDatabaseDirectory::GetDirectoryType(item->GetPath());
-      if (!item->IsParentFolder() && !m_vecItems->GetPath().Equals("special://videoplaylists/") &&
+      if (!item->IsParentFolder() && !m_vecItems->IsPath("special://videoplaylists/") &&
         (nodetype == NODE_TYPE_ROOT             ||
          nodetype == NODE_TYPE_OVERVIEW         ||
          nodetype == NODE_TYPE_TVSHOWS_OVERVIEW ||
          nodetype == NODE_TYPE_MOVIES_OVERVIEW  ||
          nodetype == NODE_TYPE_MUSICVIDEOS_OVERVIEW))
       {
-        if (!item->GetPath().Equals(CSettings::Get().GetString("myvideos.defaultlibview").c_str()))
+        if (!item->IsPath(CSettings::Get().GetString("myvideos.defaultlibview").c_str()))
           buttons.Add(CONTEXT_BUTTON_SET_DEFAULT, 13335); // set default
         if (strcmp(CSettings::Get().GetString("myvideos.defaultlibview").c_str(), ""))
           buttons.Add(CONTEXT_BUTTON_CLEAR_DEFAULT, 13403); // clear default
