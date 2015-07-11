@@ -53,6 +53,7 @@
 #include "guilib/StereoscopicsManager.h"
 #include "utils/CharsetConverter.h"
 #include "utils/CPUInfo.h"
+#include "utils/SortUtils.h"
 #include "utils/StringUtils.h"
 #include "utils/MathUtils.h"
 #include "utils/SeekHandler.h"
@@ -61,6 +62,7 @@
 #include <memory>
 #include <functional>
 #include "cores/DataCacheCore.h"
+#include "guiinfo/GUIInfoLabels.h"
 
 // stuff for current song
 #include "music/MusicInfoLoader.h"
@@ -427,6 +429,7 @@ const infomap mediacontainer[] = {{ "hasfiles",         CONTAINER_HASFILES },
                                   { "totaltime",        CONTAINER_TOTALTIME },
                                   { "hasthumb",         CONTAINER_HAS_THUMB },
                                   { "sortmethod",       CONTAINER_SORT_METHOD },
+                                  { "sortorder",        CONTAINER_SORT_ORDER },
                                   { "showplot",         CONTAINER_SHOWPLOT }};
 
 const infomap container_bools[] ={{ "onnext",           CONTAINER_MOVE_NEXT },
@@ -590,6 +593,7 @@ const infomap listitem_labels[]= {{ "thumb",            LISTITEM_THUMB },
                                   { "channelgroup",     LISTITEM_CHANNEL_GROUP },
                                   { "hasepg",           LISTITEM_HAS_EPG },
                                   { "hastimer",         LISTITEM_HASTIMER },
+                                  { "hastimerschedule", LISTITEM_HASTIMERSCHEDULE },
                                   { "hasrecording",     LISTITEM_HASRECORDING },
                                   { "isrecording",      LISTITEM_ISRECORDING },
                                   { "inprogress",       LISTITEM_INPROGRESS },
@@ -601,7 +605,8 @@ const infomap listitem_labels[]= {{ "thumb",            LISTITEM_THUMB },
                                   { "stereoscopicmode", LISTITEM_STEREOSCOPIC_MODE },
                                   { "isstereoscopic",   LISTITEM_IS_STEREOSCOPIC },
                                   { "imdbnumber",       LISTITEM_IMDBNUMBER },
-                                  { "episodename",      LISTITEM_EPISODENAME }};
+                                  { "episodename",      LISTITEM_EPISODENAME },
+                                  { "timertype",        LISTITEM_TIMERTYPE }};
 
 const infomap visualisation[] =  {{ "locked",           VISUALISATION_LOCKED },
                                   { "preset",           VISUALISATION_PRESET },
@@ -1114,11 +1119,6 @@ int CGUIInfoManager::TranslateSingleString(const std::string &strCondition, bool
         else if (StringUtils::EqualsNoCase(prop.param(), "descending"))
           order = SortOrderDescending;
         return AddMultiInfo(GUIInfo(CONTAINER_SORT_DIRECTION, order));
-      }
-      else if (prop.name == "sort")
-      {
-        if (StringUtils::EqualsNoCase(prop.param(), "songrating"))
-          return AddMultiInfo(GUIInfo(CONTAINER_SORT_METHOD, SortByRating));
       }
     }
     else if (cat.name == "listitem")
@@ -1748,18 +1748,16 @@ std::string CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *
 
   case SYSTEM_SCREEN_RESOLUTION:
     if(g_Windowing.IsFullScreen())
-      strLabel = StringUtils::Format("%ix%i@%.2fHz - %s (%02.2f fps)",
+      strLabel = StringUtils::Format("%ix%i@%.2fHz - %s",
         CDisplaySettings::Get().GetCurrentResolutionInfo().iScreenWidth,
         CDisplaySettings::Get().GetCurrentResolutionInfo().iScreenHeight,
         CDisplaySettings::Get().GetCurrentResolutionInfo().fRefreshRate,
-        g_localizeStrings.Get(244).c_str(),
-        GetFPS());
+        g_localizeStrings.Get(244).c_str());
     else
-      strLabel = StringUtils::Format("%ix%i - %s (%02.2f fps)",
+      strLabel = StringUtils::Format("%ix%i - %s",
         CDisplaySettings::Get().GetCurrentResolutionInfo().iScreenWidth,
         CDisplaySettings::Get().GetCurrentResolutionInfo().iScreenHeight,
-        g_localizeStrings.Get(242).c_str(),
-        GetFPS());
+        g_localizeStrings.Get(242).c_str());
     return strLabel;
     break;
 
@@ -1799,14 +1797,20 @@ std::string CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *
       break;
     }
   case CONTAINER_SORT_METHOD:
-    {
+  case CONTAINER_SORT_ORDER:
+  {
       CGUIWindow *window = GetWindowWithCondition(contextWindow, WINDOW_CONDITION_IS_MEDIA_WINDOW);
       if (window)
       {
         const CGUIViewState *viewState = ((CGUIMediaWindow*)window)->GetViewState();
         if (viewState)
-          strLabel = g_localizeStrings.Get(viewState->GetSortMethodLabel());
-    }
+        {
+          if (info == CONTAINER_SORT_METHOD)
+            strLabel = g_localizeStrings.Get(viewState->GetSortMethodLabel());
+          else if (info == CONTAINER_SORT_ORDER)
+            strLabel = g_localizeStrings.Get(viewState->GetSortOrderLabel());
+        }
+      }
     }
     break;
   case CONTAINER_NUM_PAGES:
@@ -1843,13 +1847,13 @@ std::string CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *
     }
     break;
   case SYSTEM_BUILD_VERSION_SHORT:
-    strLabel = GetVersionShort();
+    strLabel = CSysInfo::GetVersionShort();
     break;
   case SYSTEM_BUILD_VERSION:
-    strLabel = GetVersion();
+    strLabel = CSysInfo::GetVersion();
     break;
   case SYSTEM_BUILD_DATE:
-    strLabel = GetBuild();
+    strLabel = CSysInfo::GetBuildDate();
     break;
   case SYSTEM_FREE_MEMORY:
   case SYSTEM_FREE_MEMORY_PERCENT:
@@ -1945,17 +1949,7 @@ std::string CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *
     }
     break;
   case SYSTEM_FRIENDLY_NAME:
-    {
-      std::string friendlyName = CSettings::Get().GetString("services.devicename");
-      if (StringUtils::EqualsNoCase(friendlyName, CCompileInfo::GetAppName()))
-      {
-        std::string hostname("[unknown]");
-        g_application.getNetwork().GetHostName(hostname);
-        strLabel = StringUtils::Format("%s (%s)", friendlyName.c_str(), hostname.c_str());
-      }
-      else
-        strLabel = friendlyName;
-    }
+    strLabel = CSysInfo::GetDeviceName();
     break;
   case SYSTEM_STEREOSCOPIC_MODE:
     {
@@ -4347,30 +4341,6 @@ CTemperature CGUIInfoManager::GetGPUTemperature()
   return CTemperature();
 }
 
-// Version string MUST NOT contain spaces.  It is used
-// in the HTTP request user agent.
-std::string CGUIInfoManager::GetVersionShort(void)
-{
-  if (strlen(CCompileInfo::GetSuffix()) == 0)
-    return StringUtils::Format("%d.%d", CCompileInfo::GetMajor(), CCompileInfo::GetMinor());
-  else
-    return StringUtils::Format("%d.%d-%s", CCompileInfo::GetMajor(), CCompileInfo::GetMinor(), CCompileInfo::GetSuffix());
-}
-
-std::string CGUIInfoManager::GetVersion()
-{
-  return GetVersionShort() + " Git:" + CCompileInfo::GetSCMID();
-}
-
-std::string CGUIInfoManager::GetBuild()
-{
-  return StringUtils::Format("%s", __DATE__);
-}
-
-std::string CGUIInfoManager::GetAppName()
-{
-  return CCompileInfo::GetAppName();
-}
 
 void CGUIInfoManager::SetDisplayAfterSeek(unsigned int timeOut, int seekOffset)
 {
@@ -5352,8 +5322,16 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
       }
       if (item->HasEPGInfoTag())
         return item->GetEPGInfoTag()->EpisodeName();
+      if (item->HasPVRTimerInfoTag() && item->GetPVRTimerInfoTag()->HasEpgInfoTag())
+        return item->GetPVRTimerInfoTag()->GetEpgInfoTag()->EpisodeName();
       break;
     }
+  case LISTITEM_TIMERTYPE:
+    {
+      if (item->HasPVRTimerInfoTag())
+        return item->GetPVRTimerInfoTag()->GetTypeAsString();
+    }
+    break;
   }
   return "";
 }
@@ -5475,6 +5453,15 @@ bool CGUIInfoManager::GetItemBool(const CGUIListItem *item, int condition) const
         CFileItemPtr timer = g_PVRTimers->GetTimerForEpgTag(pItem);
         if (timer && timer->HasPVRTimerInfoTag())
           return timer->GetPVRTimerInfoTag()->IsActive();
+      }
+    }
+    else if (condition == LISTITEM_HASTIMERSCHEDULE)
+    {
+      if (pItem->HasEPGInfoTag())
+      {
+        CFileItemPtr timer = g_PVRTimers->GetTimerForEpgTag(pItem);
+        if (timer && timer->HasPVRTimerInfoTag())
+          return timer->GetPVRTimerInfoTag()->GetTimerScheduleId() > 0;
       }
     }
     else if (condition == LISTITEM_HASRECORDING)

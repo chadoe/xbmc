@@ -41,6 +41,7 @@
 #include "utils/log.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
+#include "utils/Variant.h"
 #include "video/VideoDatabase.h"
 
 #define SETTING_AUDIO_VOLUME                   "audio.volume"
@@ -228,7 +229,7 @@ void CGUIDialogAudioSubtitleSettings::Save()
     return;
 
   // prompt user if they are sure
-  if (!CGUIDialogYesNo::ShowAndGetInput(12376, 12377))
+  if (!CGUIDialogYesNo::ShowAndGetInput(CVariant{12376}, CVariant{12377}))
     return;
 
   // reset the settings
@@ -410,7 +411,7 @@ void CGUIDialogAudioSubtitleSettings::AddSubtitleStreams(CSettingGroup *group, c
   AddList(group, settingId, 462, 0, m_subtitleStream, SubtitleStreamsOptionFiller, 462);
 }
 
-bool CGUIDialogAudioSubtitleSettings::IsPlayingPassthrough(const std::string &condition, const std::string &value, const CSetting *setting)
+bool CGUIDialogAudioSubtitleSettings::IsPlayingPassthrough(const std::string &condition, const std::string &value, const CSetting *setting, void *data)
 {
   return g_application.m_pPlayer->IsPassthrough();
 }

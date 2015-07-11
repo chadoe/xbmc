@@ -22,8 +22,10 @@
 #include "ApplicationMessenger.h"
 #include "TextureDatabase.h"
 #include "Util.h"
+#include "utils/SortUtils.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
+#include "utils/Variant.h"
 #include "video/VideoDatabase.h"
 
 using namespace JSONRPC;

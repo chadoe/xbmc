@@ -32,6 +32,7 @@
 #include "utils/JobManager.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
+#include "utils/Variant.h"
 #include "utils/XBMCTinyXML.h"
 #include "FileItem.h"
 #include "TextureDatabase.h"
@@ -194,11 +195,20 @@ bool CRepository::Parse(const DirInfo& dir, VECADDONS &result)
   return false;
 }
 
+void CRepository::OnPostInstall(bool update, bool modal)
+{
+  // force refresh of addon repositories
+  CAddonInstaller::Get().UpdateRepos(true, false, true);
+}
+
 void CRepository::OnPostUnInstall()
 {
   CAddonDatabase database;
   database.Open();
   database.DeleteRepository(ID());
+
+  // force refresh of addon repositories
+  CAddonInstaller::Get().UpdateRepos(true, false, true);
 }
 
 CRepositoryUpdateJob::CRepositoryUpdateJob(const VECADDONS &repos)
@@ -292,7 +302,7 @@ bool CRepositoryUpdateJob::DoWork()
           std::string line = g_localizeStrings.Get(24096);
           if (newAddon->Props().broken == "DEPSNOTMET")
             line = g_localizeStrings.Get(24104);
-          if (addon && CGUIDialogYesNo::ShowAndGetInput(newAddon->Name(), line, 24097, ""))
+          if (addon && CGUIDialogYesNo::ShowAndGetInput(CVariant{newAddon->Name()}, CVariant{line}, CVariant{24097}, CVariant{""}))
             CAddonMgr::Get().DisableAddon(newAddon->ID());
         }
       }

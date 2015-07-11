@@ -22,6 +22,8 @@
 
 #include "settings/dialogs/GUIDialogSettingsManualBase.h"
 
+class CVariant;
+
 class CGUIDialogAudioSubtitleSettings : public CGUIDialogSettingsManualBase
 {
 public:
@@ -54,7 +56,7 @@ protected:
   void AddAudioStreams(CSettingGroup *group, const std::string &settingId);
   void AddSubtitleStreams(CSettingGroup *group, const std::string &settingId);
 
-  static bool IsPlayingPassthrough(const std::string &condition, const std::string &value, const CSetting *setting);
+  static bool IsPlayingPassthrough(const std::string &condition, const std::string &value, const CSetting *setting, void *data);
 
   static void AudioStreamsOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
   static void SubtitleStreamsOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);

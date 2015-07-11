@@ -31,6 +31,8 @@
 #include "android/jni/View.h"
 #include "android/jni/Window.h"
 #include "android/jni/WindowManager.h"
+#include "android/jni/Build.h"
+#include "android/jni/System.h"
 
 CEGLNativeTypeAndroid::CEGLNativeTypeAndroid()
   : m_width(0), m_height(0)
@@ -46,16 +48,40 @@ bool CEGLNativeTypeAndroid::CheckCompatibility()
   return true;
 }
 
+static bool DeviceCanUseDisplaysize(const std::string &name)
+{
+  // Devices that can render GUI in 4K
+  static const char *devicecanusedisplaysize[] = {
+    "foster",
+    NULL
+  };
+
+  for (const char **ptr = devicecanusedisplaysize; *ptr; ptr++)
+  {
+    if (!strnicmp(*ptr, name.c_str(), strlen(*ptr)))
+      return true;
+  }
+  return false;
+}
+
 void CEGLNativeTypeAndroid::Initialize()
 {
+  std::string displaySize;
   m_width = m_height = 0;
 
   // FIXME: Temporary shield specific hack to obtain HDMI resolution
   //        Remove and use New Android M API
-  std::string displaySize = CJNISystemProperties::get("sys.display-size", "");
-  CLog::Log(LOGDEBUG, "CEGLNativeTypeAndroid: display-size: %s", displaySize.c_str());
+  if (DeviceCanUseDisplaysize(CJNIBuild::DEVICE))
+    displaySize = CJNISystemProperties::get("sys.display-size", "");
+
+  // Override with xmbc_properties if present
+  std::string customdisplaySize = CJNISystem::getProperty("xbmc.display-size", "");
+  if (!customdisplaySize.empty())
+    displaySize = customdisplaySize;
+
   if (!displaySize.empty())
   {
+    CLog::Log(LOGDEBUG, "CEGLNativeTypeAndroid: display-size: %s", displaySize.c_str());
     std::vector<std::string> aSize = StringUtils::Split(displaySize, "x");
     if (aSize.size() == 2)
     {
@@ -161,7 +187,7 @@ bool CEGLNativeTypeAndroid::GetNativeResolution(RESOLUTION_INFO *res) const
   res->iScreenWidth  = res->iWidth;
   res->iScreenHeight = res->iHeight;
   res->strMode       = StringUtils::Format("%dx%d @ %.2f%s - Full Screen", res->iScreenWidth, res->iScreenHeight, res->fRefreshRate,
-  res->dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
+                                           res->dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
   CLog::Log(LOGNOTICE,"Current resolution: %s\n",res->strMode.c_str());
   return true;
 }
@@ -204,6 +230,8 @@ bool CEGLNativeTypeAndroid::ProbeResolutions(std::vector<RESOLUTION_INFO> &resol
       for (unsigned int i = 0; i < refreshRates.size(); i++)
       {
         res.fRefreshRate = refreshRates[i];
+        res.strMode      = StringUtils::Format("%dx%d @ %.2f%s - Full Screen", res.iScreenWidth, res.iScreenHeight, res.fRefreshRate,
+                                               res.dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
         resolutions.push_back(res);
       }
     }

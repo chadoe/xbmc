@@ -75,6 +75,13 @@ CFileItem::CFileItem(const CSong& song)
   SetFromSong(song);
 }
 
+CFileItem::CFileItem(const CSong& song, const CMusicInfoTag& music)
+{
+  Initialize();
+  SetFromSong(song);
+  *GetMusicInfoTag() = music;
+}
+
 CFileItem::CFileItem(const CURL &url, const CAlbum& album)
 {
   Initialize();
@@ -195,7 +202,7 @@ CFileItem::CFileItem(const CPVRTimerInfoTagPtr& timer)
 
   Initialize();
 
-  m_bIsFolder = false;
+  m_bIsFolder = timer->IsRepeating();
   m_pvrTimerInfoTag = timer;
   m_strPath = timer->Path();
   SetLabel(timer->Title());
@@ -614,17 +621,7 @@ void CFileItem::ToSortable(SortItem &sortable, Field field) const
     GetMusicInfoTag()->ToSortable(sortable, field);
 
   if (HasVideoInfoTag())
-  {
     GetVideoInfoTag()->ToSortable(sortable, field);
-
-    if (GetVideoInfoTag()->m_type == MediaTypeTvShow)
-    {
-      if (field == FieldNumberOfEpisodes && HasProperty("totalepisodes"))
-        sortable[FieldNumberOfEpisodes] = GetProperty("totalepisodes");
-      if (field == FieldNumberOfWatchedEpisodes && HasProperty("unwatchedepisodes"))
-        sortable[FieldNumberOfWatchedEpisodes] = GetProperty("unwatchedepisodes");
-    }
-  }
 
   if (HasPictureInfoTag())
     GetPictureInfoTag()->ToSortable(sortable, field);
@@ -696,7 +693,7 @@ bool CFileItem::IsVideo() const
   if (IsPVRRecording())
     return true;
 
-  if (IsHDHomeRun() || URIUtils::IsDVD(m_strPath) || IsSlingbox())
+  if (URIUtils::IsDVD(m_strPath))
     return true;
 
   std::string extension;
@@ -1052,16 +1049,6 @@ bool CFileItem::IsSmb() const
 bool CFileItem::IsURL() const
 {
   return URIUtils::IsURL(m_strPath);
-}
-
-bool CFileItem::IsHDHomeRun() const
-{
-  return URIUtils::IsHDHomeRun(m_strPath);
-}
-
-bool CFileItem::IsSlingbox() const
-{
-  return URIUtils::IsSlingbox(m_strPath);
 }
 
 bool CFileItem::IsPVR() const
@@ -1561,6 +1548,8 @@ bool CFileItem::LoadTracksFromCueDocument(CFileItemList& scannedItems)
 
   VECSONGS tracks;
   m_cueDocument->GetSongs(tracks);
+
+  bool oneFilePerTrack = m_cueDocument->IsOneFilePerTrack();
   m_cueDocument.reset();
 
   int tracksFound = 0;
@@ -1596,7 +1585,15 @@ bool CFileItem::LoadTracksFromCueDocument(CFileItemList& scannedItems)
       { // must be the last song
         song.iDuration = (tag.GetDuration() * 75 - song.iStartOffset + 37) / 75;
       }
-      scannedItems.Add(CFileItemPtr(new CFileItem(song)));
+      if ( tag.Loaded() && oneFilePerTrack && ! ( tag.GetAlbum().empty() || tag.GetArtist().empty() || tag.GetTitle().empty() ) )
+      {
+        // If there are multiple files in a cue file, the tags from the files should be prefered if they exist.
+        scannedItems.Add(CFileItemPtr(new CFileItem(song, tag)));
+      }
+      else
+      {
+        scannedItems.Add(CFileItemPtr(new CFileItem(song)));
+      }
       ++tracksFound;
     }
   }

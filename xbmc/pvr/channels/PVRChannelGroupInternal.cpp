@@ -23,6 +23,7 @@
 #include "dialogs/GUIDialogOK.h"
 #include "settings/AdvancedSettings.h"
 #include "utils/log.h"
+#include "utils/Variant.h"
 
 #include "pvr/PVRDatabase.h"
 #include "pvr/PVRManager.h"
@@ -36,10 +37,11 @@ using namespace PVR;
 using namespace EPG;
 
 CPVRChannelGroupInternal::CPVRChannelGroupInternal(bool bRadio) :
-  CPVRChannelGroup(bRadio, bRadio ? PVR_INTERNAL_GROUP_ID_RADIO : PVR_INTERNAL_GROUP_ID_TV, g_localizeStrings.Get(19287)),
   m_iHiddenChannels(0)
 {
   m_iGroupType = PVR_GROUP_TYPE_INTERNAL;
+  m_bRadio = bRadio;
+  m_strGroupName = g_localizeStrings.Get(19287);
 }
 
 CPVRChannelGroupInternal::CPVRChannelGroupInternal(const CPVRChannelGroup &group) :
@@ -168,7 +170,7 @@ bool CPVRChannelGroupInternal::RemoveFromGroup(const CPVRChannelPtr &channel)
   CPVRChannelPtr currentChannel(g_PVRManager.GetCurrentChannel());
   if (currentChannel && currentChannel == channel)
   {
-    CGUIDialogOK::ShowAndGetInput(19098, 19102);
+    CGUIDialogOK::ShowAndGetInput(CVariant{19098}, CVariant{19102});
     return false;
   }
 

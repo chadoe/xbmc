@@ -21,11 +21,12 @@
 #include "GUIDialogProgress.h"
 #include "guilib/GUIProgressControl.h"
 #include "Application.h"
-#include "GUIInfoManager.h"
+#include "guiinfo/GUIInfoLabels.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
 #include "threads/SingleLock.h"
 #include "utils/log.h"
+#include "utils/Variant.h"
 
 using namespace std;
 
@@ -67,7 +68,7 @@ void CGUIDialogProgress::StartModal()
   // the main rendering thread (this should really be handled via
   // a thread message though IMO)
   m_active = true;
-  m_bModal = true;
+  m_modalityType = DialogModalityType::MODAL;
   m_closing = false;
   g_windowManager.RegisterDialog(this);
 
@@ -123,7 +124,7 @@ bool CGUIDialogProgress::OnMessage(CGUIMessage& message)
         string strHeading = m_strHeading;
         strHeading.append(" : ");
         strHeading.append(g_localizeStrings.Get(16024));
-        CGUIDialogBoxBase::SetHeading(strHeading);
+        CGUIDialogBoxBase::SetHeading(CVariant{strHeading});
         m_bCanceled = true;
         return true;
       }

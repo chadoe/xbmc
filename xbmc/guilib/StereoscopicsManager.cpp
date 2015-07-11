@@ -42,7 +42,9 @@
 #include "utils/log.h"
 #include "utils/RegExp.h"
 #include "utils/StringUtils.h"
+#include "utils/Variant.h"
 #include "windowing/WindowingFactory.h"
+#include "guiinfo/GUIInfoLabels.h"
 
 
 struct StereoModeMap
@@ -58,8 +60,8 @@ static const struct StereoModeMap VideoModeToGuiModeMap[] =
   { "right_left",               RENDER_STEREO_MODE_SPLIT_VERTICAL },
   { "top_bottom",               RENDER_STEREO_MODE_SPLIT_HORIZONTAL },
   { "bottom_top",               RENDER_STEREO_MODE_SPLIT_HORIZONTAL },
-  { "checkerboard_rl",          RENDER_STEREO_MODE_OFF }, // unsupported
-  { "checkerboard_lr",          RENDER_STEREO_MODE_OFF }, // unsupported
+  { "checkerboard_rl",          RENDER_STEREO_MODE_CHECKERBOARD }, 
+  { "checkerboard_lr",          RENDER_STEREO_MODE_CHECKERBOARD },
   { "row_interleaved_rl",       RENDER_STEREO_MODE_INTERLACED },
   { "row_interleaved_lr",       RENDER_STEREO_MODE_INTERLACED },
   { "col_interleaved_rl",       RENDER_STEREO_MODE_OFF }, // unsupported
@@ -83,6 +85,7 @@ static const struct StereoModeMap StringToGuiModeMap[] =
   { "tab",                      RENDER_STEREO_MODE_SPLIT_HORIZONTAL }, // alias
   { "row_interleaved",          RENDER_STEREO_MODE_INTERLACED },
   { "interlaced",               RENDER_STEREO_MODE_INTERLACED }, // alias
+  { "checkerboard",             RENDER_STEREO_MODE_CHECKERBOARD },
   { "anaglyph_cyan_red",        RENDER_STEREO_MODE_ANAGLYPH_RED_CYAN },
   { "anaglyph_green_magenta",   RENDER_STEREO_MODE_ANAGLYPH_GREEN_MAGENTA },
   { "anaglyph_yellow_blue",     RENDER_STEREO_MODE_ANAGLYPH_YELLOW_BLUE },
@@ -211,9 +214,9 @@ RENDER_STEREO_MODE CStereoscopicsManager::GetStereoModeByUserChoice(const std::s
   CGUIDialogSelect* pDlgSelect = (CGUIDialogSelect*)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
   pDlgSelect->Reset();
   if (heading.empty())
-    pDlgSelect->SetHeading(g_localizeStrings.Get(36528).c_str());
+    pDlgSelect->SetHeading(CVariant{g_localizeStrings.Get(36528)});
   else
-    pDlgSelect->SetHeading(heading.c_str());
+    pDlgSelect->SetHeading(CVariant{heading});
 
   // prepare selectable stereo modes
   std::vector<RENDER_STEREO_MODE> selectableModes;
@@ -276,6 +279,9 @@ const std::string &CStereoscopicsManager::GetLabelForStereoMode(const RENDER_STE
     case RENDER_STEREO_MODE_INTERLACED:
 	  msgId = 36507;
 	  break;
+    case RENDER_STEREO_MODE_CHECKERBOARD:
+    msgId = 36511;
+    break;
     case RENDER_STEREO_MODE_HARDWAREBASED:
 	  msgId = 36508;
 	  break;
@@ -547,7 +553,7 @@ void CStereoscopicsManager::OnPlaybackStarted(void)
 
       CGUIDialogSelect* pDlgSelect = (CGUIDialogSelect*)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
       pDlgSelect->Reset();
-      pDlgSelect->SetHeading(g_localizeStrings.Get(36527).c_str());
+      pDlgSelect->SetHeading(CVariant{g_localizeStrings.Get(36527)});
 
       int idx_playing   = -1;
 

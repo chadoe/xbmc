@@ -31,6 +31,7 @@
 #include "GUIDialogKeyboardGeneric.h"
 #include "settings/Settings.h"
 #include "utils/RegExp.h"
+#include "utils/Variant.h"
 #include "ApplicationMessenger.h"
 #include "windowing/WindowingFactory.h"
 
@@ -313,7 +314,8 @@ void CGUIDialogKeyboardGeneric::OnClickButton(int iButtonControl)
   else
   {
     const CGUIControl* pButton = GetControl(iButtonControl);
-    if (pButton)
+    // Do not register input for buttons with id >= 500
+    if (pButton && iButtonControl < 500)
     {
       Character(pButton->GetDescription());
       // reset the shift keys

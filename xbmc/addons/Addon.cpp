@@ -38,6 +38,7 @@
 #include "utils/log.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
+#include "utils/Variant.h"
 #include "URL.h"
 #include "Util.h"
 #include <vector>
@@ -498,9 +499,14 @@ bool CAddon::LoadUserSettings()
   return m_userSettingsLoaded;
 }
 
+bool CAddon::HasSettingsToSave() const
+{
+  return !m_settings.empty();
+}
+
 void CAddon::SaveSettings(void)
 {
-  if (m_settings.empty())
+  if (!HasSettingsToSave())
     return; // no settings to save
 
   // break down the path into directories

@@ -52,6 +52,7 @@
 #include "storage/MediaManager.h"
 #include "utils/StringUtils.h"
 #include "guilib/LocalizeStrings.h"
+#include "utils/FileUtils.h"
 #include "utils/log.h"
 #include "TextureCache.h"
 #include "interfaces/AnnouncementManager.h"
@@ -62,7 +63,9 @@
 #include "video/VideoDbUrl.h"
 #include "playlists/SmartPlayList.h"
 #include "utils/GroupUtils.h"
+#include "utils/Variant.h"
 #include "Application.h"
+#include "guiinfo/GUIInfoLabels.h"
 
 using namespace std;
 using namespace dbiplus;
@@ -396,7 +399,8 @@ void CVideoDatabase::CreateViews()
                                      "  tvshow_view.c%02d AS studio,"
                                      "  tvshow_view.c%02d AS mpaa,"
                                      "  count(DISTINCT episode_view.idEpisode) AS episodes,"
-                                     "  count(files.playCount) AS playCount "
+                                     "  count(files.playCount) AS playCount,"
+                                     "  min(episode_view.c%02d) AS aired "
                                      "FROM seasons"
                                      "  JOIN tvshow_view ON"
                                      "    tvshow_view.idShow = seasons.idShow"
@@ -407,7 +411,7 @@ void CVideoDatabase::CreateViews()
                                      "GROUP BY seasons.idSeason",
                                      VIDEODB_ID_TV_TITLE, VIDEODB_ID_TV_PLOT, VIDEODB_ID_TV_PREMIERED,
                                      VIDEODB_ID_TV_GENRE, VIDEODB_ID_TV_STUDIOS, VIDEODB_ID_TV_MPAA,
-                                     VIDEODB_ID_EPISODE_SEASON);
+                                     VIDEODB_ID_EPISODE_AIRED, VIDEODB_ID_EPISODE_SEASON);
   m_pDS->exec(seasonview.c_str());
 
   CLog::Log(LOGINFO, "create musicvideo_view");
@@ -854,72 +858,28 @@ void CVideoDatabase::UpdateFileDateAdded(int idFile, const std::string& strFileN
 {
   if (idFile < 0 || strFileNameAndPath.empty())
     return;
-    
-  std::string strSQL = "";
+
+  CDateTime dateAdded;
   try
   {
     if (NULL == m_pDB.get()) return;
     if (NULL == m_pDS.get()) return;
-
-    std::string file = strFileNameAndPath;
-    if (URIUtils::IsStack(strFileNameAndPath))
-      file = CStackDirectory::GetFirstStackedFile(strFileNameAndPath);
-
-    if (URIUtils::IsInArchive(file))
-      file = CURL(file).GetHostName();
-
-    CDateTime dateAdded;
-    // Skip looking at the files ctime/mtime if defined by the user through as.xml
-    if (g_advancedSettings.m_iVideoLibraryDateAdded > 0)
-    {
-      // Let's try to get the modification datetime
-      struct __stat64 buffer;
-      if (CFile::Stat(file, &buffer) == 0 && (buffer.st_mtime != 0 || buffer.st_ctime !=0))
-      {
-        time_t now = time(NULL);
-        time_t addedTime;
-        // Prefer the modification time if it's valid
-        if (g_advancedSettings.m_iVideoLibraryDateAdded == 1)
-        {
-          if (buffer.st_mtime != 0 && (time_t)buffer.st_mtime <= now)
-            addedTime = (time_t)buffer.st_mtime;
-          else
-            addedTime = (time_t)buffer.st_ctime;
-        }
-        // Use the newer of the creation and modification time
-        else
-        {
-          addedTime = max((time_t)buffer.st_ctime, (time_t)buffer.st_mtime);
-          // if the newer of the two dates is in the future, we try it with the older one
-          if (addedTime > now)
-            addedTime = min((time_t)buffer.st_ctime, (time_t)buffer.st_mtime);
-        }
-
-        // make sure the datetime does is not in the future
-        if (addedTime <= now)
-        {
-          struct tm *time;
-#ifdef HAVE_LOCALTIME_R
-          struct tm result = {};
-          time = localtime_r(&addedTime, &result);
-#else
-          time = localtime(&addedTime);
-#endif
-          if (time)
-            dateAdded = *time;
-        }
-      }
-    }
-
+     
+    // 1 prefering to use the files mtime(if it's valid) and only using the file's ctime if the mtime isn't valid
+    if (g_advancedSettings.m_iVideoLibraryDateAdded == 1)
+      dateAdded = CFileUtils::GetModificationDate(strFileNameAndPath, false);
+    //2 using the newer datetime of the file's mtime and ctime
+    else if (g_advancedSettings.m_iVideoLibraryDateAdded == 2)
+      dateAdded = CFileUtils::GetModificationDate(strFileNameAndPath, true);
+    //0 using the current datetime if non of the above matches or one returns an invalid datetime
     if (!dateAdded.IsValid())
       dateAdded = CDateTime::GetCurrentDateTime();
 
-    strSQL = PrepareSQL("update files set dateAdded='%s' where idFile=%d", dateAdded.GetAsDBDateTime().c_str(), idFile);
-    m_pDS->exec(strSQL.c_str());
+    m_pDS->exec(PrepareSQL("UPDATE files SET dateAdded='%s' WHERE idFile=%d", dateAdded.GetAsDBDateTime().c_str(), idFile));
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s unable to update dateadded for file (%s)", __FUNCTION__, strSQL.c_str());
+    CLog::Log(LOGERROR, "%s unable to update dateadded for file (%s) with date (%s)", __FUNCTION__, idFile, dateAdded.GetAsDBDateTime().c_str());
   }
 }
 
@@ -4112,10 +4072,10 @@ void CVideoDatabase::RemoveContentForPath(const std::string& strPath, CGUIDialog
 
     if (progress)
     {
-      progress->SetHeading(700);
-      progress->SetLine(0, "");
-      progress->SetLine(1, 313);
-      progress->SetLine(2, 330);
+      progress->SetHeading(CVariant{700});
+      progress->SetLine(0, CVariant{""});
+      progress->SetLine(1, CVariant{313});
+      progress->SetLine(2, CVariant{330});
       progress->SetPercentage(0);
       progress->StartModal();
       progress->ShowProgressBar(true);
@@ -4278,162 +4238,6 @@ public:
 
 void CVideoDatabase::UpdateTables(int iVersion)
 {
-  if (iVersion < 61)
-  {
-    m_pDS->exec("ALTER TABLE path ADD dateAdded text");
-    m_pDS->exec("ALTER TABLE files ADD dateAdded text");
-  }
-  if (iVersion < 62)
-  { // add seasons table
-    m_pDS->exec("CREATE TABLE seasons ( idSeason integer primary key, idShow integer, season integer)");
-    // insert all seasons for each show
-    m_pDS->query("SELECT idShow FROM tvshow");
-    while (!m_pDS->eof())
-    {
-      std::string sql = PrepareSQL("INSERT INTO seasons (idShow,season)"
-                                  "  SELECT DISTINCT"
-                                  "    idShow,c%02d"
-                                  "  FROM"
-                                  "    episode"
-                                  "  JOIN tvshowlinkepisode ON"
-                                  "    episode.idEpisode=tvshowlinkepisode.idEpisode"
-                                  "  WHERE idShow=%i", VIDEODB_ID_EPISODE_SEASON, m_pDS->fv(0).get_asInt());
-      m_pDS2->exec(sql.c_str());
-      // and the "all seasons node"
-      sql = PrepareSQL("INSERT INTO seasons (idShow,season) VALUES(%i,-1)", m_pDS->fv(0).get_asInt());
-      m_pDS2->exec(sql.c_str());
-      m_pDS->next();
-    }
-  }
-  if (iVersion < 63)
-  { // add art table
-    m_pDS->exec("CREATE TABLE art(art_id INTEGER PRIMARY KEY, media_id INTEGER, media_type TEXT, type TEXT, url TEXT)");
-
-    CMediaSettings::Get().SetVideoNeedsUpdate(63);
-    CSettings::Get().Save();
-  }
-  if (iVersion < 64)
-  { // add idShow to episode table
-    m_pDS->exec("ALTER TABLE episode ADD idShow integer");
-    m_pDS->query("SELECT idEpisode FROM episode");
-    while (!m_pDS->eof())
-    {
-      int idEpisode = m_pDS->fv(0).get_asInt();
-      std::string update = PrepareSQL("UPDATE episode SET idShow=(SELECT idShow FROM tvshowlinkepisode WHERE idEpisode=%d) WHERE idEpisode=%d", idEpisode, idEpisode);
-      m_pDS2->exec(update.c_str());
-      m_pDS->next();
-    }
-    m_pDS->exec("DROP TABLE tvshowlinkepisode");
-  }
-  if (iVersion < 67)
-  {
-    m_pDS->exec("CREATE TABLE tag (idTag integer primary key, strTag text)");
-    m_pDS->exec("CREATE TABLE taglinks (idTag integer, idMedia integer, media_type TEXT)");
-  }
-  if (iVersion < 68)
-  { // add idSet to movie table
-    m_pDS->exec("ALTER TABLE movie ADD idSet integer");
-    m_pDS->query("SELECT idMovie FROM movie");
-    while (!m_pDS->eof())
-    {
-      int idMovie = m_pDS->fv(0).get_asInt();
-      std::string sql = PrepareSQL("UPDATE movie SET idSet=(SELECT idSet FROM setlinkmovie WHERE idMovie = %d LIMIT 1) WHERE idMovie = %d", idMovie, idMovie);
-      m_pDS2->exec(sql.c_str());
-      m_pDS->next();
-    }
-    m_pDS->exec("DROP TABLE IF EXISTS setlinkmovie");
-  }
-  if (iVersion < 70)
-  { // update old art URLs
-    m_pDS->query("select art_id,url from art where url like 'image://%%'");
-    vector< pair<int, string> > art;
-    while (!m_pDS->eof())
-    {
-      art.push_back(make_pair(m_pDS->fv(0).get_asInt(), CURL(m_pDS->fv(1).get_asString()).Get()));
-      m_pDS->next();
-    }
-    m_pDS->close();
-    for (vector< pair<int, string> >::iterator i = art.begin(); i != art.end(); ++i)
-      m_pDS->exec(PrepareSQL("update art set url='%s' where art_id=%d", i->second.c_str(), i->first));
-  }
-  if (iVersion < 71)
-  { // update URL encoded paths
-    m_pDS->query("select idFile, strFilename from files");
-    vector< pair<int, string> > files;
-    while (!m_pDS->eof())
-    {
-      files.push_back(make_pair(m_pDS->fv(0).get_asInt(), m_pDS->fv(1).get_asString()));
-      m_pDS->next();
-    }
-    m_pDS->close();
-
-    for (vector< pair<int, string> >::iterator i = files.begin(); i != files.end(); ++i)
-    {
-      std::string filename = i->second;
-      bool update = URIUtils::UpdateUrlEncoding(filename) &&
-                    (!m_pDS->query(PrepareSQL("SELECT idFile FROM files WHERE strFilename = '%s'", filename.c_str()).c_str()) || m_pDS->num_rows() <= 0);
-      m_pDS->close();
-
-      if (update)
-        m_pDS->exec(PrepareSQL("UPDATE files SET strFilename='%s' WHERE idFile=%d", filename.c_str(), i->first));
-    }
-  }
-  if (iVersion < 72)
-  { // Update thumb to poster or banner as applicable
-    CTextureDatabase db;
-    if (db.Open())
-    {
-      m_pDS->query("select art_id,url,media_id,media_type from art where type='thumb' and media_type in ('movie', 'musicvideo', 'tvshow', 'season', 'set')");
-      vector<CArtItem> art;
-      while (!m_pDS->eof())
-      {
-        CTextureDetails details;
-        if (db.GetCachedTexture(m_pDS->fv(1).get_asString(), details))
-        {
-          CArtItem item;
-          item.art_id = m_pDS->fv(0).get_asInt();
-          item.art_url = m_pDS->fv(1).get_asString();
-          item.art_type = CVideoInfoScanner::GetArtTypeFromSize(details.width, details.height);
-          item.media_id = m_pDS->fv(2).get_asInt();
-          item.media_type = m_pDS->fv(3).get_asString();
-          if (item.art_type != "thumb")
-            art.push_back(item);
-        }
-        m_pDS->next();
-      }
-      m_pDS->close();
-      for (vector<CArtItem>::iterator i = art.begin(); i != art.end(); ++i)
-      {
-        if (GetArtForItem(i->media_id, i->media_type, i->art_type).empty())
-          m_pDS->exec(PrepareSQL("update art set type='%s' where art_id=%d", i->art_type.c_str(), i->art_id));
-        else
-          m_pDS->exec(PrepareSQL("delete from art where art_id=%d", i->art_id));
-      }
-    }
-  }
-  if (iVersion < 74)
-  { // update the runtime columns
-    vector< pair<string, int> > tables;
-    tables.push_back(make_pair("movie", VIDEODB_ID_RUNTIME));
-    tables.push_back(make_pair("episode", VIDEODB_ID_EPISODE_RUNTIME));
-    tables.push_back(make_pair("mvideo", VIDEODB_ID_MUSICVIDEO_RUNTIME));
-    for (vector< pair<string, int> >::iterator i = tables.begin(); i != tables.end(); ++i)
-    {
-      std::string sql = PrepareSQL("select id%s,c%02d from %s where c%02d != ''", i->first.c_str(), i->second, (i->first=="mvideo")?"musicvideo":i->first.c_str(), i->second);
-      m_pDS->query(sql.c_str());
-      vector< pair<int, int> > videos;
-      while (!m_pDS->eof())
-      {
-        int duration = CVideoInfoTag::GetDurationFromMinuteString(m_pDS->fv(1).get_asString());
-        if (duration)
-          videos.push_back(make_pair(m_pDS->fv(0).get_asInt(), duration));
-        m_pDS->next();
-      }
-      m_pDS->close();
-      for (vector< pair<int, int> >::iterator j = videos.begin(); j != videos.end(); ++j)
-        m_pDS->exec(PrepareSQL("update %s set c%02d=%d where id%s=%d", (i->first=="mvideo")?"musicvideo":i->first.c_str(), i->second, j->second, i->first.c_str(), j->first));
-    }
-  }
   if (iVersion < 76)
   {
     m_pDS->exec("ALTER TABLE settings ADD StereoMode integer");
@@ -4752,7 +4556,7 @@ void CVideoDatabase::UpdateTables(int iVersion)
 
 int CVideoDatabase::GetSchemaVersion() const
 {
-  return 93;
+  return 94;
 }
 
 bool CVideoDatabase::LookupByFolders(const std::string &path, bool shows)
@@ -5093,7 +4897,7 @@ bool CVideoDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList& 
     Filter extFilter = filter;
     if (CProfilesManager::Get().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE && !g_passwordManager.bMasterUser)
     {
-      std::string view, view_id, media_type, extraField;
+      std::string view, view_id, media_type, extraField, extraJoin;
       if (idContent == VIDEODB_CONTENT_MOVIES)
       {
         view       = MediaTypeMovie;
@@ -5106,6 +4910,8 @@ bool CVideoDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList& 
         view       = MediaTypeEpisode;
         view_id    = "idShow";
         media_type = MediaTypeTvShow;
+        // in order to make use of FieldPlaycount in smart playlists we need an extra join
+        extraJoin  = PrepareSQL("JOIN tvshow_view ON tvshow_view.idShow = tag_link.media_id");
       }
       else if (idContent == VIDEODB_CONTENT_MUSICVIDEOS)
       {
@@ -5124,6 +4930,7 @@ bool CVideoDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList& 
       extFilter.AppendJoin(PrepareSQL("JOIN %s_view ON %s_link.media_id = %s_view.%s AND %s_link.media_type='%s'", view.c_str(), type, view.c_str(), view_id.c_str(), type, media_type.c_str()));
       extFilter.AppendJoin(PrepareSQL("JOIN files ON files.idFile = %s_view.idFile", view.c_str()));
       extFilter.AppendJoin("JOIN path ON path.idPath = files.idPath");
+      extFilter.AppendJoin(extraJoin);
     }
     else
     {
@@ -5272,91 +5079,7 @@ bool CVideoDatabase::GetNavCommon(const std::string& strBaseDir, CFileItemList& 
 
 bool CVideoDatabase::GetTagsNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool countOnly /* = false */)
 {
-  std::string mediaType;
-  if (idContent == VIDEODB_CONTENT_MOVIES)
-    mediaType = MediaTypeMovie;
-  else if (idContent == VIDEODB_CONTENT_TVSHOWS)
-    mediaType = MediaTypeTvShow;
-  else if (idContent == VIDEODB_CONTENT_MUSICVIDEOS)
-    mediaType = MediaTypeMusicVideo;
-  else
-    return false;
-
-  try
-  {
-    if (NULL == m_pDB.get()) return false;
-    if (NULL == m_pDS.get()) return false;
-
-    std::string strSQL = "SELECT %s FROM tag_link ";
-
-    Filter extFilter = filter;
-    extFilter.fields = "tag.tag_id, tag.name";
-    extFilter.AppendJoin("JOIN tag ON tag.tag_id = tag_link.tag_id");
-
-    if (idContent == (int)VIDEODB_CONTENT_MOVIES)
-      extFilter.AppendJoin("JOIN movie_view ON movie_view.idMovie = tag_link.media_id");
-
-    extFilter.AppendWhere(PrepareSQL("tag_link.media_type = '%s'", mediaType.c_str()));
-    extFilter.AppendGroup("tag_link.tag_id");
-
-    if (countOnly)
-    {
-      extFilter.fields = "COUNT(DISTINCT tag_link.tag_id)";
-      extFilter.group.clear();
-      extFilter.order.clear();
-    }
-    strSQL = StringUtils::Format(strSQL.c_str(), !extFilter.fields.empty() ? extFilter.fields.c_str() : "*");
-
-    // parse the base path to get additional filters
-    CVideoDbUrl videoUrl;
-    if (!BuildSQL(strBaseDir, strSQL, extFilter, strSQL, videoUrl))
-      return false;
-
-    int iRowsFound = RunQuery(strSQL);
-    if (iRowsFound <= 0)
-      return iRowsFound == 0;
-
-    if (countOnly)
-    {
-      CFileItemPtr pItem(new CFileItem());
-      pItem->SetProperty("total", iRowsFound == 1 ? m_pDS->fv(0).get_asInt() : iRowsFound);
-      items.Add(pItem);
-
-      m_pDS->close();
-      return true;
-    }
-
-    while (!m_pDS->eof())
-    {
-      int idTag = m_pDS->fv(0).get_asInt();
-
-      CFileItemPtr pItem(new CFileItem(m_pDS->fv(1).get_asString()));
-      pItem->m_bIsFolder = true;
-      pItem->GetVideoInfoTag()->m_iDbId = idTag;
-      pItem->GetVideoInfoTag()->m_type = "tag";
-
-      CVideoDbUrl itemUrl = videoUrl;
-      std::string path = StringUtils::Format("%i/", idTag);
-      itemUrl.AppendPath(path);
-      pItem->SetPath(itemUrl.ToString());
-
-      if (!items.Contains(pItem->GetPath()))
-      {
-        pItem->SetLabelPreformated(true);
-        items.Add(pItem);
-      }
-
-      m_pDS->next();
-    }
-    m_pDS->close();
-
-    return true;
-  }
-  catch (...)
-  {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
-  }
-  return false;
+  return GetNavCommon(strBaseDir, items, "tag", idContent, filter, countOnly);
 }
 
 bool CVideoDatabase::GetSetsNav(const std::string& strBaseDir, CFileItemList& items, int idContent /* = -1 */, const Filter &filter /* = Filter() */, bool ignoreSingleMovieSets /* = false */)
@@ -6053,7 +5776,13 @@ bool CVideoDatabase::GetSeasonsByWhere(const std::string& strBaseDir, const Filt
         pItem->GetVideoInfoTag()->m_strShowTitle = m_pDS->fv(VIDEODB_ID_SEASON_TVSHOW_TITLE).get_asString();
         pItem->GetVideoInfoTag()->m_strPlot = m_pDS->fv(VIDEODB_ID_SEASON_TVSHOW_PLOT).get_asString();
         pItem->GetVideoInfoTag()->m_premiered.SetFromDBDate(m_pDS->fv(VIDEODB_ID_SEASON_TVSHOW_PREMIERED).get_asString());
-        if (pItem->GetVideoInfoTag()->m_premiered.IsValid())
+        pItem->GetVideoInfoTag()->m_firstAired.SetFromDBDate(m_pDS->fv(VIDEODB_ID_SEASON_PREMIERED).get_asString());
+
+        // season premiered date based on first episode airdate associated to the season
+        // tvshow premiered date is used as a fallback
+        if (pItem->GetVideoInfoTag()->m_firstAired.IsValid())
+          pItem->GetVideoInfoTag()->m_iYear = pItem->GetVideoInfoTag()->m_firstAired.GetYear();
+        else if (pItem->GetVideoInfoTag()->m_premiered.IsValid())
           pItem->GetVideoInfoTag()->m_iYear = pItem->GetVideoInfoTag()->m_premiered.GetYear();
         pItem->GetVideoInfoTag()->m_genre = StringUtils::Split(m_pDS->fv(VIDEODB_ID_SEASON_TVSHOW_GENRE).get_asString(), g_advancedSettings.m_videoItemSeparator);
         pItem->GetVideoInfoTag()->m_studio = StringUtils::Split(m_pDS->fv(VIDEODB_ID_SEASON_TVSHOW_STUDIO).get_asString(), g_advancedSettings.m_videoItemSeparator);
@@ -6183,8 +5912,6 @@ bool CVideoDatabase::GetItems(const std::string &strBaseDir, VIDEODB_CONTENT_TYP
     return GetCountriesNav(strBaseDir, items, mediaType, filter);
   else if (StringUtils::EqualsNoCase(itemType, "tags"))
     return GetTagsNav(strBaseDir, items, mediaType, filter);
-  else if (StringUtils::EqualsNoCase(itemType, "artists") && mediaType == VIDEODB_CONTENT_MUSICVIDEOS)
-    return GetActorsNav(strBaseDir, items, mediaType, filter);
   else if (StringUtils::EqualsNoCase(itemType, "albums") && mediaType == VIDEODB_CONTENT_MUSICVIDEOS)
     return GetMusicVideoAlbumsNav(strBaseDir, items, -1, filter);
 
@@ -7192,7 +6919,7 @@ void CVideoDatabase::GetMusicVideoGenresByName(const std::string& strSearch, CFi
     if (NULL == m_pDS.get()) return;
 
     if (CProfilesManager::Get().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE && !g_passwordManager.bMasterUser)
-      strSQL=PrepareSQL("SELECT genre.genre_id, genre.name, path.strPath FROM genre INNER JOIN genre_link ON genre_link.genre_id=genre.genre_id INNER JOIN musicvideo ON genre_link.media_id=musicvideo.idMVideo INNER JOIN files ON files.idFile=musicvideo.idFile INNER JOIN path ON path.idPath=files.idPath WHERE genre_link.media_type='musicvideo' AND genre.strGenre LIKE '%%%s%%'", strSearch.c_str());
+      strSQL=PrepareSQL("SELECT genre.genre_id, genre.name, path.strPath FROM genre INNER JOIN genre_link ON genre_link.genre_id=genre.genre_id INNER JOIN musicvideo ON genre_link.media_id=musicvideo.idMVideo INNER JOIN files ON files.idFile=musicvideo.idFile INNER JOIN path ON path.idPath=files.idPath WHERE genre_link.media_type='musicvideo' AND genre.name LIKE '%%%s%%'", strSearch.c_str());
     else
       strSQL=PrepareSQL("SELECT DISTINCT genre.genre_id, genre.name FROM genre INNER JOIN genre_link ON genre_link.genre_id=genre.genre_id WHERE genre_link.media_type='musicvideo' AND genre.name LIKE '%%%s%%'", strSearch.c_str());
     m_pDS->query( strSQL.c_str() );
@@ -7652,7 +7379,7 @@ void CVideoDatabase::GetMusicVideosByName(const std::string& strSearch, CFileIte
     if (NULL == m_pDS.get()) return;
 
     if (CProfilesManager::Get().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE && !g_passwordManager.bMasterUser)
-      strSQL = PrepareSQL("SELECT musicvideo.idMVideo, musicvideo.c%02d, path.strPath FROM musicvideo INNER JOIN files ON files.idFile=musicvideo.idFile INNER JOIN path path.idPath=files.idPath WHERE musicvideo.c%02d LIKE '%%%s%%'", VIDEODB_ID_MUSICVIDEO_TITLE, VIDEODB_ID_MUSICVIDEO_TITLE, strSearch.c_str());
+      strSQL = PrepareSQL("SELECT musicvideo.idMVideo, musicvideo.c%02d, path.strPath FROM musicvideo INNER JOIN files ON files.idFile=musicvideo.idFile INNER JOIN path ON path.idPath=files.idPath WHERE musicvideo.c%02d LIKE '%%%s%%'", VIDEODB_ID_MUSICVIDEO_TITLE, VIDEODB_ID_MUSICVIDEO_TITLE, strSearch.c_str());
     else
       strSQL = PrepareSQL("select musicvideo.idMVideo,musicvideo.c%02d from musicvideo where musicvideo.c%02d like '%%%s%%'",VIDEODB_ID_MUSICVIDEO_TITLE,VIDEODB_ID_MUSICVIDEO_TITLE,strSearch.c_str());
     m_pDS->query( strSQL.c_str() );
@@ -7821,7 +7548,7 @@ void CVideoDatabase::GetTvShowsDirectorsByName(const std::string& strSearch, CFi
     if (NULL == m_pDS.get()) return;
 
     if (CProfilesManager::Get().GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE && !g_passwordManager.bMasterUser)
-      strSQL = PrepareSQL("SELECT DISTINCT director_link.actor_id, actor.name, path.strPath FROM actor INNER JOIN director_link ON irector_link.actor_id=actor.actor_id INNER JOIN tvshow ON director_link.media_id=tvshow.idShow INNER JOIN tvshowlinkpath ON tvshowlinkpath.idShow=tvshow.idShow INNER JOIN path ON path.idPath=tvshowlinkpath.idPath WHERE director_link.media_type='tvshow' AND actor.name LIKE '%%%s%%'", strSearch.c_str());
+      strSQL = PrepareSQL("SELECT DISTINCT director_link.actor_id, actor.name, path.strPath FROM actor INNER JOIN director_link ON director_link.actor_id=actor.actor_id INNER JOIN tvshow ON director_link.media_id=tvshow.idShow INNER JOIN tvshowlinkpath ON tvshowlinkpath.idShow=tvshow.idShow INNER JOIN path ON path.idPath=tvshowlinkpath.idPath WHERE director_link.media_type='tvshow' AND actor.name LIKE '%%%s%%'", strSearch.c_str());
     else
       strSQL = PrepareSQL("SELECT DISTINCT director_link.actor_id, actor.name FROM actor INNER JOIN director_link ON director_link.actor_id=actor.actor_id INNER JOIN tvshow ON director_link.media_id=tvshow.idShow WHERE director_link.media_type='tvshow' AND actor.name LIKE '%%%s%%'", strSearch.c_str());
 
@@ -7930,10 +7657,10 @@ void CVideoDatabase::CleanDatabase(CGUIDialogProgressBarHandle* handle, const se
       progress = (CGUIDialogProgress *)g_windowManager.GetWindow(WINDOW_DIALOG_PROGRESS);
       if (progress)
       {
-        progress->SetHeading(700);
-        progress->SetLine(0, "");
-        progress->SetLine(1, 313);
-        progress->SetLine(2, 330);
+        progress->SetHeading(CVariant{700});
+        progress->SetLine(0, CVariant{""});
+        progress->SetLine(1, CVariant{313});
+        progress->SetLine(2, CVariant{330});
         progress->SetPercentage(0);
         progress->StartModal();
         progress->ShowProgressBar(true);
@@ -8308,10 +8035,10 @@ std::vector<int> CVideoDatabase::CleanMediaType(const std::string &mediaType, co
             if (pDialog != NULL)
             {
               CURL sourceUrl(sourcePath);
-              pDialog->SetHeading(15012);
-              pDialog->SetText(StringUtils::Format(g_localizeStrings.Get(15013).c_str(), sourceUrl.GetWithoutUserDetails().c_str()));
-              pDialog->SetChoice(0, 15015);
-              pDialog->SetChoice(1, 15014);
+              pDialog->SetHeading(CVariant{15012});
+              pDialog->SetText(CVariant{StringUtils::Format(g_localizeStrings.Get(15013).c_str(), sourceUrl.GetWithoutUserDetails().c_str())});
+              pDialog->SetChoice(0, CVariant{15015});
+              pDialog->SetChoice(1, CVariant{15014});
 
               //send message and wait for user input
               ThreadMessage tMsg = { TMSG_DIALOG_DOMODAL, WINDOW_DIALOG_YES_NO, g_windowManager.GetActiveWindow() };
@@ -8439,10 +8166,10 @@ void CVideoDatabase::ExportToXML(const std::string &path, bool singleFiles /* = 
 
     if (progress)
     {
-      progress->SetHeading(647);
-      progress->SetLine(0, 650);
-      progress->SetLine(1, "");
-      progress->SetLine(2, "");
+      progress->SetHeading(CVariant{647});
+      progress->SetLine(0, CVariant{650});
+      progress->SetLine(1, CVariant{""});
+      progress->SetLine(2, CVariant{""});
       progress->SetPercentage(0);
       progress->StartModal();
       progress->ShowProgressBar(true);
@@ -8487,7 +8214,7 @@ void CVideoDatabase::ExportToXML(const std::string &path, bool singleFiles /* = 
 
       if (progress)
       {
-        progress->SetLine(1, movie.m_strTitle);
+        progress->SetLine(1, CVariant{movie.m_strTitle});
         progress->SetPercentage(current * 100 / total);
         progress->Progress();
         if (progress->IsCanceled())
@@ -8584,7 +8311,7 @@ void CVideoDatabase::ExportToXML(const std::string &path, bool singleFiles /* = 
 
       if (progress)
       {
-        progress->SetLine(1, movie.m_strTitle);
+        progress->SetLine(1, CVariant{movie.m_strTitle});
         progress->SetPercentage(current * 100 / total);
         progress->Progress();
         if (progress->IsCanceled())
@@ -8682,7 +8409,7 @@ void CVideoDatabase::ExportToXML(const std::string &path, bool singleFiles /* = 
 
       if (progress)
       {
-        progress->SetLine(1, tvshow.m_strTitle);
+        progress->SetLine(1, CVariant{tvshow.m_strTitle});
         progress->SetPercentage(current * 100 / total);
         progress->Progress();
         if (progress->IsCanceled())
@@ -8882,7 +8609,7 @@ void CVideoDatabase::ExportToXML(const std::string &path, bool singleFiles /* = 
     progress->Close();
 
   if (iFailCount > 0)
-    CGUIDialogOK::ShowAndGetInput(647, StringUtils::Format(g_localizeStrings.Get(15011).c_str(), iFailCount));
+    CGUIDialogOK::ShowAndGetInput(CVariant{647}, CVariant{StringUtils::Format(g_localizeStrings.Get(15011).c_str(), iFailCount)});
 }
 
 void CVideoDatabase::ExportActorThumbs(const std::string &strDir, const CVideoInfoTag &tag, bool singleFiles, bool overwrite /*=false*/)
@@ -8928,10 +8655,10 @@ void CVideoDatabase::ImportFromXML(const std::string &path)
     progress = (CGUIDialogProgress *)g_windowManager.GetWindow(WINDOW_DIALOG_PROGRESS);
     if (progress)
     {
-      progress->SetHeading(648);
-      progress->SetLine(0, 649);
-      progress->SetLine(1, 330);
-      progress->SetLine(2, "");
+      progress->SetHeading(CVariant{648});
+      progress->SetLine(0, CVariant{649});
+      progress->SetLine(1, CVariant{330});
+      progress->SetLine(2, CVariant{""});
       progress->SetPercentage(0);
       progress->StartModal();
       progress->ShowProgressBar(true);
@@ -9068,7 +8795,7 @@ void CVideoDatabase::ImportFromXML(const std::string &path)
       if (progress && total)
       {
         progress->SetPercentage(current * 100 / total);
-        progress->SetLine(2, info.m_strTitle);
+        progress->SetLine(2, CVariant{info.m_strTitle});
         progress->Progress();
         if (progress->IsCanceled())
         {

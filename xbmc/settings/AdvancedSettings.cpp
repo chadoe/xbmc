@@ -36,6 +36,7 @@
 #include "utils/URIUtils.h"
 #include "utils/XMLUtils.h"
 #include "utils/log.h"
+#include "utils/Variant.h"
 #include "filesystem/SpecialProtocol.h"
 #include "addons/IAddon.h"
 #include "addons/AddonManager.h"
@@ -164,7 +165,7 @@ void CAdvancedSettings::Initialize()
   m_DXVACheckCompatibilityPresent = false;
   m_DXVAForceProcessorRenderer = true;
   m_DXVANoDeintProcForProgressive = false;
-  m_DXVAAllowHqScaling = false;
+  m_DXVAAllowHqScaling = true;
   m_videoFpsDetect = 1;
   m_videoBusyDialogDelay_ms = 500;
   m_stagefrightConfig.useAVCcodec = -1;
@@ -274,6 +275,7 @@ void CAdvancedSettings::Initialize()
   m_prioritiseAPEv2tags = false;
   m_musicItemSeparator = " / ";
   m_videoItemSeparator = " / ";
+  m_iMusicLibraryDateAdded = 1; // prefer mtime over ctime and current time
 
   m_bVideoLibraryAllItemsOnBottom = false;
   m_iVideoLibraryRecentlyAddedItems = 25;
@@ -317,12 +319,10 @@ void CAdvancedSettings::Initialize()
   m_playlistTimeout = 20; // 20 seconds timeout
   m_GLRectangleHack = false;
   m_iSkipLoopFilter = 0;
-  m_AllowD3D9Ex = true;
-  m_ForceD3D9Ex = false;
-  m_AllowDynamicTextures = true;
   m_RestrictCapsMask = 0;
   m_sleepBeforeFlip = 0;
   m_bVirtualShares = true;
+  m_bAllowDeferredRendering = true;
 
 //caused lots of jerks
 //#ifdef TARGET_WINDOWS
@@ -738,6 +738,7 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
     XMLUtils::GetString(pElement, "albumformat", m_strMusicLibraryAlbumFormat);
     XMLUtils::GetString(pElement, "albumformatright", m_strMusicLibraryAlbumFormatRight);
     XMLUtils::GetString(pElement, "itemseparator", m_musicItemSeparator);
+    XMLUtils::GetInt(pElement, "dateadded", m_iMusicLibraryDateAdded);
   }
 
   pElement = pRootElement->FirstChildElement("videolibrary");
@@ -851,13 +852,11 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
   XMLUtils::GetInt(pRootElement,"skiploopfilter", m_iSkipLoopFilter, -16, 48);
   XMLUtils::GetFloat(pRootElement, "forcedswaptime", m_ForcedSwapTime, 0.0, 100.0);
 
-  XMLUtils::GetBoolean(pRootElement,"allowd3d9ex", m_AllowD3D9Ex);
-  XMLUtils::GetBoolean(pRootElement,"forced3d9ex", m_ForceD3D9Ex);
-  XMLUtils::GetBoolean(pRootElement,"allowdynamictextures", m_AllowDynamicTextures);
   XMLUtils::GetUInt(pRootElement,"restrictcapsmask", m_RestrictCapsMask);
   XMLUtils::GetFloat(pRootElement,"sleepbeforeflip", m_sleepBeforeFlip, 0.0f, 1.0f);
   XMLUtils::GetBoolean(pRootElement,"virtualshares", m_bVirtualShares);
   XMLUtils::GetUInt(pRootElement, "packagefoldersize", m_addonPackageFolderSize);
+  XMLUtils::GetBoolean(pRootElement, "allowdeferredrendering", m_bAllowDeferredRendering);
 
   // EPG
   pElement = pRootElement->FirstChildElement("epg");

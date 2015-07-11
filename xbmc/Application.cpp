@@ -85,6 +85,7 @@
 #include "settings/AdvancedSettings.h"
 #include "settings/DisplaySettings.h"
 #include "settings/MediaSettings.h"
+#include "settings/SkinSettings.h"
 #include "guilib/LocalizeStrings.h"
 #include "utils/CPUInfo.h"
 #include "utils/SeekHandler.h"
@@ -492,7 +493,7 @@ bool CApplication::Create()
   CProfilesManager::Get().Load();
 
   CLog::Log(LOGNOTICE, "-----------------------------------------------------------------------");
-  CLog::Log(LOGNOTICE, "Starting %s (%s). Platform: %s %s %d-bit", g_infoManager.GetAppName().c_str(), g_infoManager.GetVersion().c_str(),
+  CLog::Log(LOGNOTICE, "Starting %s (%s). Platform: %s %s %d-bit", CSysInfo::GetAppName().c_str(), CSysInfo::GetVersion().c_str(),
             g_sysinfo.GetBuildTargetPlatformName().c_str(), g_sysinfo.GetBuildTargetCpuFamily().c_str(), g_sysinfo.GetXbmcBitness());
 
   std::string buildType;
@@ -511,8 +512,8 @@ bool CApplication::Create()
 //#elif defined(some_ID) // uncomment for special version/fork
 //  specialVersion = " (version for XXXX)";
 #endif
-  CLog::Log(LOGNOTICE, "Using %s %s x%d build%s", buildType.c_str(), g_infoManager.GetAppName().c_str(), g_sysinfo.GetXbmcBitness(), specialVersion.c_str());
-  CLog::Log(LOGNOTICE, "%s compiled " __DATE__ " by %s for %s %s %d-bit %s (%s)", g_infoManager.GetAppName().c_str(), g_sysinfo.GetUsedCompilerNameAndVer().c_str(), g_sysinfo.GetBuildTargetPlatformName().c_str(),
+  CLog::Log(LOGNOTICE, "Using %s %s x%d build%s", buildType.c_str(), CSysInfo::GetAppName().c_str(), g_sysinfo.GetXbmcBitness(), specialVersion.c_str());
+  CLog::Log(LOGNOTICE, "%s compiled " __DATE__ " by %s for %s %s %d-bit %s (%s)", CSysInfo::GetAppName().c_str(), g_sysinfo.GetUsedCompilerNameAndVer().c_str(), g_sysinfo.GetBuildTargetPlatformName().c_str(),
             g_sysinfo.GetBuildTargetCpuFamily().c_str(), g_sysinfo.GetXbmcBitness(), g_sysinfo.GetBuildTargetPlatformVersionDecoded().c_str(),
             g_sysinfo.GetBuildTargetPlatformVersion().c_str());
 
@@ -556,6 +557,9 @@ bool CApplication::Create()
         "Product: %s, Device: %s, Board: %s - Manufacturer: %s, Brand: %s, Model: %s, Hardware: %s",
         CJNIBuild::PRODUCT.c_str(), CJNIBuild::DEVICE.c_str(), CJNIBuild::BOARD.c_str(),
         CJNIBuild::MANUFACTURER.c_str(), CJNIBuild::BRAND.c_str(), CJNIBuild::MODEL.c_str(), CJNIBuild::HARDWARE.c_str());
+  std::string extstorage;
+  bool extready = CXBMCApp::GetExternalStorage(extstorage);
+  CLog::Log(LOGNOTICE, "External storage path = %s; status = %s", extstorage.c_str(), extready ? "ok" : "nok");
 #endif
 
 #if defined(__arm__)
@@ -1535,7 +1539,7 @@ void CApplication::ReloadSkin(bool confirm/*=false*/)
     if (confirm && !m_skinReverting)
     {
       bool cancelled;
-      if (!CGUIDialogYesNo::ShowAndGetInput(13123, 13111, cancelled, "", "", 10000))
+      if (!CGUIDialogYesNo::ShowAndGetInput(CVariant{13123}, CVariant{13111}, cancelled, CVariant{""}, CVariant{""}, 10000))
       {
         m_skinReverting = true;
         if (oldSkin.empty())
@@ -1614,7 +1618,13 @@ bool CApplication::LoadSkin(const SkinPtr& skin)
   if (!skin)
     return false;
 
+  // start/prepare the skin
   skin->Start();
+
+  // migrate any skin-specific settings that are still stored in guisettings.xml
+  CSkinSettings::Get().MigrateSettings(skin);
+
+  // check if the skin has been properly loaded and if it has a Home.xml
   if (!skin->HasSkinFile("Home.xml"))
     return false;
 
@@ -1740,6 +1750,9 @@ bool CApplication::LoadSkin(const SkinPtr& skin)
 void CApplication::UnloadSkin(bool forReload /* = false */)
 {
   CLog::Log(LOGINFO, "Unloading old skin %s...", forReload ? "for reload " : "");
+
+  if (g_SkinInfo != nullptr)
+    g_SkinInfo->SaveSettings();
 
   g_audioManager.Enable(false);
 
@@ -2413,7 +2426,7 @@ bool CApplication::OnAction(const CAction &action)
   }
 
   // Check for global volume control
-  if (action.GetAmount() && (action.GetID() == ACTION_VOLUME_UP || action.GetID() == ACTION_VOLUME_DOWN || action.GetID() == ACTION_VOLUME_SET))
+  if ((action.GetAmount() && (action.GetID() == ACTION_VOLUME_UP || action.GetID() == ACTION_VOLUME_DOWN)) || action.GetID() == ACTION_VOLUME_SET)
   {
     if (!m_pPlayer->IsPassthrough())
     {
@@ -2983,7 +2996,7 @@ PlayBackRet CApplication::PlayFile(const CFileItem& item, bool bRestart)
     }
     else
 #endif
-      CGUIDialogOK::ShowAndGetInput(435, 436);
+      CGUIDialogOK::ShowAndGetInput(CVariant{435}, CVariant{436});
 
     return PLAYBACK_OK;
   }
@@ -3897,7 +3910,7 @@ bool CApplication::OnMessage(CGUIMessage& message)
       else if (message.GetParam1() == GUI_MSG_UI_READY)
       {
         if (m_fallbackLanguageLoaded)
-          CGUIDialogOK::ShowAndGetInput(24133, 24134);
+          CGUIDialogOK::ShowAndGetInput(CVariant{24133}, CVariant{24134});
 
         // show info dialog about moved configuration files if needed
         ShowAppMigrationMessage();
@@ -4187,7 +4200,7 @@ void CApplication::ShowAppMigrationMessage()
   if (CFile::Exists("special://home/.kodi_data_was_migrated") &&
       !CFile::Exists("special://home/.kodi_migration_info_shown"))
   {
-    CGUIDialogOK::ShowAndGetInput(24128, 24129);
+    CGUIDialogOK::ShowAndGetInput(CVariant{24128}, CVariant{24129});
     CFile tmpFile;
     // create the file which will prevent this dialog from appearing in the future
     tmpFile.OpenForWrite("special://home/.kodi_migration_info_shown");
