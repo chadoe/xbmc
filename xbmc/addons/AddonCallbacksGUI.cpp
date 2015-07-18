@@ -19,7 +19,7 @@
  */
 
 #include "Application.h"
-#include "ApplicationMessenger.h"
+#include "messaging/ApplicationMessenger.h"
 #include "Addon.h"
 #include "AddonCallbacksGUI.h"
 #include "utils/log.h"
@@ -51,6 +51,7 @@
 #define CONTROL_LABELFILES      12
 
 using namespace std;
+using namespace KODI::MESSAGING;
 
 namespace ADDON
 {
@@ -1883,7 +1884,7 @@ void CAddonCallbacksGUI::Dialog_TextViewer(const char *heading, const char *text
   CGUIDialogTextViewer* pDialog = (CGUIDialogTextViewer*)g_windowManager.GetWindow(WINDOW_DIALOG_TEXT_VIEWER);
   pDialog->SetHeading(heading);
   pDialog->SetText(text);
-  pDialog->DoModal();
+  pDialog->Open();
 }
 //@}
 
@@ -1901,7 +1902,7 @@ int CAddonCallbacksGUI::Dialog_Select(const char *heading, const char *entries[]
   if (selected > 0)
     pDialog->SetSelected(selected);
 
-  pDialog->DoModal();
+  pDialog->Open();
   return pDialog->GetSelectedLabel();
 }
 //@}
@@ -2185,9 +2186,7 @@ bool CGUIAddonWindowDialog::OnMessage(CGUIMessage &message)
 void CGUIAddonWindowDialog::Show(bool show /* = true */)
 {
   unsigned int iCount = g_graphicsContext.exit();
-  ThreadMessage tMsg = {TMSG_GUI_ADDON_DIALOG, 1, show ? 1 : 0};
-  tMsg.lpVoid = this;
-  CApplicationMessenger::Get().SendMessage(tMsg, true);
+  CApplicationMessenger::Get().SendMsg(TMSG_GUI_ADDON_DIALOG, 1, show ? 1 : 0, static_cast<void*>(this));
   g_graphicsContext.restore(iCount);
 }
 

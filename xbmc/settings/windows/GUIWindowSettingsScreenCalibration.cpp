@@ -37,9 +37,8 @@
 #include "utils/Variant.h"
 #include "windowing/WindowingFactory.h"
 
+#include <string>
 #include <utility>
-
-using namespace std;
 
 #define CONTROL_LABEL_ROW1  2
 #define CONTROL_LABEL_ROW2  3
@@ -83,7 +82,7 @@ bool CGUIWindowSettingsScreenCalibration::OnAction(const CAction &action)
       pDialog->SetLine(1, CVariant{20327});
       pDialog->SetChoice(0, CVariant{222});
       pDialog->SetChoice(1, CVariant{186});
-      pDialog->DoModal();
+      pDialog->Open();
       if (pDialog->IsConfirmed())
       {
         g_graphicsContext.ResetScreenParameters(m_Res[m_iCurRes]);

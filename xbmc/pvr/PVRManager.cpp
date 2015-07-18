@@ -19,7 +19,7 @@
  */
 
 #include "Application.h"
-#include "ApplicationMessenger.h"
+#include "messaging/ApplicationMessenger.h"
 #include "GUIInfoManager.h"
 #include "Util.h"
 #include "dialogs/GUIDialogOK.h"
@@ -66,6 +66,7 @@ using namespace MUSIC_INFO;
 using namespace PVR;
 using namespace EPG;
 using namespace ANNOUNCEMENT;
+using namespace KODI::MESSAGING;
 
 int CPVRManager::m_pvrWindowIds[10] = {
     WINDOW_TV_CHANNELS,
@@ -153,7 +154,7 @@ void CPVRManager::OnSettingChanged(const CSetting *setting)
   const std::string &settingId = setting->GetId();
   if (settingId == "pvrmanager.enabled")
   {
-    CApplicationMessenger::Get().SetPVRManagerState(((CSettingBool*)setting)->GetValue());
+    CApplicationMessenger::Get().PostMsg(TMSG_SETPVRMANAGERSTATE, ((CSettingBool*)setting)->GetValue() ? 1 : 0);
   }
   else if (settingId == "pvrparental.enabled")
   {
@@ -209,7 +210,7 @@ void CPVRManager::OnSettingAction(const CSetting *setting)
     {
       CGUIDialogPVRChannelManager *dialog = (CGUIDialogPVRChannelManager *)g_windowManager.GetWindow(WINDOW_DIALOG_PVR_CHANNEL_MANAGER);
       if (dialog)
-        dialog->DoModal();
+        dialog->Open();
     }
   }
   else if (settingId == "pvrmanager.groupmanager")
@@ -218,7 +219,7 @@ void CPVRManager::OnSettingAction(const CSetting *setting)
     {
       CGUIDialogPVRGroupManager *dialog = (CGUIDialogPVRGroupManager *)g_windowManager.GetWindow(WINDOW_DIALOG_PVR_GROUP_MANAGER);
       if (dialog)
-        dialog->DoModal();
+        dialog->Open();
     }
   }
   else if (settingId == "pvrclient.menuhook")
@@ -454,7 +455,7 @@ void CPVRManager::Stop(void)
   if (IsPlaying())
   {
     CLog::Log(LOGNOTICE,"PVRManager - %s - stopping PVR playback", __FUNCTION__);
-    CApplicationMessenger::Get().MediaStop();
+    CApplicationMessenger::Get().SendMsg(TMSG_MEDIA_STOP);
   }
 
   /* stop all update threads */
@@ -563,7 +564,7 @@ void CPVRManager::Process(void)
   if (IsStarted())
   {
     CLog::Log(LOGNOTICE, "PVRManager - %s - no add-ons enabled anymore. restarting the pvrmanager", __FUNCTION__);
-    CApplicationMessenger::Get().SetPVRManagerState(true);
+    CApplicationMessenger::Get().PostMsg(TMSG_SETPVRMANAGERSTATE, 1);
   }
   else
   {
@@ -772,13 +773,13 @@ void CPVRManager::ResetDatabase(bool bResetEPGOnly /* = false */)
   pDlgProgress->SetLine(0, CVariant{""});
   pDlgProgress->SetLine(1, CVariant{g_localizeStrings.Get(19186)}); // All data in the PVR database is being erased
   pDlgProgress->SetLine(2, CVariant{""});
-  pDlgProgress->StartModal();
+  pDlgProgress->Open();
   pDlgProgress->Progress();
 
   if (m_addons && m_addons->IsPlaying())
   {
     CLog::Log(LOGNOTICE,"PVRManager - %s - stopping playback", __FUNCTION__);
-    CApplicationMessenger::Get().MediaStop();
+    CApplicationMessenger::Get().SendMsg(TMSG_MEDIA_STOP);
   }
 
   pDlgProgress->SetPercentage(10);
@@ -1115,7 +1116,9 @@ bool CPVRManager::PlayMedia(const CFileItem& item)
 
   if (!g_application.IsCurrentThread())
   {
-    CApplicationMessenger::Get().MediaPlay(pvrItem);
+    CFileItemList *l = new CFileItemList; //don't delete,
+    l->Add(std::make_shared<CFileItem>(pvrItem));
+    CApplicationMessenger::Get().PostMsg(TMSG_MEDIA_PLAY, -1, -1, static_cast<void*>(l));
     return true;
   }
 
@@ -1198,7 +1201,11 @@ bool CPVRManager::UpdateItem(CFileItem& item)
 bool CPVRManager::StartPlayback(const CPVRChannelPtr &channel, bool bMinimised /* = false */)
 {
   CMediaSettings::Get().SetVideoStartWindowed(bMinimised);
-  CApplicationMessenger::Get().MediaPlay(CFileItem(channel));
+  
+  CFileItemList *l = new CFileItemList; //don't delete,
+  l->Add(std::make_shared<CFileItem>(channel));
+  CApplicationMessenger::Get().PostMsg(TMSG_MEDIA_PLAY, -1, -1, static_cast<void*>(l));
+
   CLog::Log(LOGNOTICE, "PVRManager - %s - started playback on channel '%s'",
       __FUNCTION__, channel->ChannelName().c_str());
   return true;

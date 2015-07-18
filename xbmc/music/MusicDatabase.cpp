@@ -2673,7 +2673,7 @@ int CMusicDatabase::Cleanup(bool bShowProgress /* = true */)
       pDlgProgress->SetLine(1, CVariant{318});
       pDlgProgress->SetLine(2, CVariant{330});
       pDlgProgress->SetPercentage(0);
-      pDlgProgress->StartModal();
+      pDlgProgress->Open();
       pDlgProgress->ShowProgressBar(true);
     }
   }
@@ -2811,7 +2811,7 @@ bool CMusicDatabase::LookupCDDBInfo(bool bRequery/*=false*/)
     pDialogProgress->SetLine(1, CVariant{256});
     pDialogProgress->SetLine(2, CVariant{""});
     pDialogProgress->ShowProgressBar(false);
-    pDialogProgress->StartModal();
+    pDialogProgress->Open();
 
     // get cddb information
     if (!cddb.queryCDinfo(pCdInfo))
@@ -2839,7 +2839,7 @@ bool CMusicDatabase::LookupCDDBInfo(bool bRequery/*=false*/)
           pDlgSelect->Add(strTitle);
           i++;
         }
-        pDlgSelect->DoModal();
+        pDlgSelect->Open();
 
         // Has the user selected a match...
         int iSelectedCD = pDlgSelect->GetSelectedLabel();
@@ -2922,7 +2922,7 @@ void CMusicDatabase::DeleteCDDBInfo()
     }
 
     pDlg->Sort();
-    pDlg->DoModal();
+    pDlg->Open();
 
     // and wait till user selects one
     int iSelectedAlbum = pDlg->GetSelectedLabel();
@@ -4659,7 +4659,7 @@ void CMusicDatabase::ExportToXML(const std::string &xmlFile, bool singleFiles, b
       progress->SetLine(1, CVariant{""});
       progress->SetLine(2, CVariant{""});
       progress->SetPercentage(0);
-      progress->StartModal();
+      progress->Open();
       progress->ShowProgressBar(true);
     }
 
@@ -4840,7 +4840,7 @@ void CMusicDatabase::ImportFromXML(const std::string &xmlFile)
       progress->SetLine(1, CVariant{330});
       progress->SetLine(2, CVariant{""});
       progress->SetPercentage(0);
-      progress->StartModal();
+      progress->Open();
       progress->ShowProgressBar(true);
     }
 
@@ -5020,7 +5020,7 @@ void CMusicDatabase::ExportKaraokeInfo(const std::string & outFile, bool asHTML)
       progress->SetLine(1, CVariant{""});
       progress->SetLine(2, CVariant{""});
       progress->SetPercentage(0);
-      progress->StartModal();
+      progress->Open();
       progress->ShowProgressBar(true);
     }
 
@@ -5112,7 +5112,7 @@ void CMusicDatabase::ImportKaraokeInfo(const std::string & inputFile)
       progress->SetLine(1, CVariant{""});
       progress->SetLine(2, CVariant{""});
       progress->SetPercentage(0);
-      progress->StartModal();
+      progress->Open();
       progress->ShowProgressBar(true);
     }
 
@@ -5696,6 +5696,6 @@ void CMusicDatabase::UpdateFileDateAdded(int songId, const std::string& strFileN
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s unable to update dateadded for song (%s) with date (%s)", __FUNCTION__, songId, dateAdded.GetAsDBDateTime().c_str());
+    CLog::Log(LOGERROR, "%s (%s, %s) failed", __FUNCTION__, CURL::GetRedacted(strFileNameAndPath).c_str(), dateAdded.GetAsDBDateTime().c_str());
   }
 }

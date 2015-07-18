@@ -21,7 +21,7 @@
 #include "PVRClients.h"
 
 #include "Application.h"
-#include "ApplicationMessenger.h"
+#include "messaging/ApplicationMessenger.h"
 #include "GUIUserMessages.h"
 #include "dialogs/GUIDialogExtendedProgressBar.h"
 #include "dialogs/GUIDialogOK.h"
@@ -40,6 +40,7 @@
 using namespace ADDON;
 using namespace PVR;
 using namespace EPG;
+using namespace KODI::MESSAGING;
 
 /** number of iterations when scanning for add-ons. don't use a timer because the user may block in the dialog */
 #define PVR_CLIENT_AVAHI_SCAN_ITERATIONS   (20)
@@ -377,8 +378,7 @@ bool CPVRClients::SwitchChannel(const CPVRChannelPtr &channel)
     }
     else
     {
-      CFileItem m_currentFile(channel);
-      CApplicationMessenger::Get().PlayFile(m_currentFile, false);
+      CApplicationMessenger::Get().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(new CFileItem(channel)));
       bSwitchSuccessful = true;
     }
   }
@@ -637,7 +637,7 @@ PVR_ERROR CPVRClients::DeleteAllRecordingsFromTrash()
       if (itrClients->second->SupportsRecordingsUndelete() && itrClients->second->GetRecordingsAmount(true) > 0)
         pDialog->Add(itrClients->second->GetBackendName());
     }
-    pDialog->DoModal();
+    pDialog->Open();
     selection = pDialog->GetSelectedLabel();
   }
 
@@ -878,7 +878,7 @@ void CPVRClients::ProcessMenuHooks(int iClientID, PVR_MENUHOOK_CAT cat, const CF
       {
         pDialog->Add(itrClients->second->GetBackendName());
       }
-      pDialog->DoModal();
+      pDialog->Open();
 
       int selection = pDialog->GetSelectedLabel();
       if (selection >= 0)
@@ -912,7 +912,7 @@ void CPVRClients::ProcessMenuHooks(int iClientID, PVR_MENUHOOK_CAT cat, const CF
       }
     if (hookIDs.size() > 1)
     {
-      pDialog->DoModal();
+      pDialog->Open();
       selection = pDialog->GetSelectedLabel();
     }
     if (selection >= 0)
@@ -959,7 +959,7 @@ void CPVRClients::StartChannelScan(void)
     for (unsigned int i = 0; i < possibleScanClients.size(); i++)
       pDialog->Add(possibleScanClients[i]->GetFriendlyName());
 
-    pDialog->DoModal();
+    pDialog->Open();
 
     int selection = pDialog->GetSelectedLabel();
     if (selection >= 0)

@@ -21,7 +21,7 @@
 #include "GUIWindowPVRBase.h"
 
 #include "Application.h"
-#include "ApplicationMessenger.h"
+#include "messaging/ApplicationMessenger.h"
 #include "dialogs/GUIDialogNumeric.h"
 #include "dialogs/GUIDialogKaiToast.h"
 #include "dialogs/GUIDialogOK.h"
@@ -51,6 +51,7 @@
 
 using namespace PVR;
 using namespace EPG;
+using namespace KODI::MESSAGING;
 
 std::map<bool, std::string> CGUIWindowPVRBase::m_selectedItemPaths;
 
@@ -233,7 +234,7 @@ bool CGUIWindowPVRBase::OpenGroupSelectionDialog(void)
   dialog->SetItems(&options);
   dialog->SetMultiSelection(false);
   dialog->SetSelected(m_group->GroupName());
-  dialog->DoModal();
+  dialog->Open();
 
   if (!dialog->IsConfirmed())
     return false;
@@ -310,7 +311,7 @@ bool CGUIWindowPVRBase::PlayFile(CFileItem *item, bool bPlayMinimized /* = false
           pDialog->SetLine(0, CVariant{""});
           pDialog->SetLine(1, CVariant{12021}); // Start from beginning
           pDialog->SetLine(2, CVariant{recording->m_strTitle});
-          pDialog->DoModal();
+          pDialog->Open();
 
           if (pDialog->IsConfirmed())
           {
@@ -330,7 +331,7 @@ bool CGUIWindowPVRBase::PlayFile(CFileItem *item, bool bPlayMinimized /* = false
 
       if (!bSwitchSuccessful)
       {
-        CApplicationMessenger::Get().PlayFile(*item, false);
+        CApplicationMessenger::Get().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(new CFileItem(*item)));
         return true;
       }
     }
@@ -363,7 +364,7 @@ bool CGUIWindowPVRBase::ShowTimerSettings(CFileItem *item)
     return false;
 
   pDlgInfo->SetTimer(item);
-  pDlgInfo->DoModal();
+  pDlgInfo->Open();
 
   return pDlgInfo->IsConfirmed();
 }
@@ -460,7 +461,7 @@ bool CGUIWindowPVRBase::PlayRecording(CFileItem *item, bool bPlayMinimized /* = 
   {
     if (bCheckResume)
       CheckResumeRecording(item);
-    CApplicationMessenger::Get().PlayFile(*item, false);
+    CApplicationMessenger::Get().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(new CFileItem(*item)));
     return true;
   }
 
@@ -512,7 +513,7 @@ bool CGUIWindowPVRBase::PlayRecording(CFileItem *item, bool bPlayMinimized /* = 
 
   if (bCheckResume)
     CheckResumeRecording(item);
-  CApplicationMessenger::Get().PlayFile(*item, false);
+  CApplicationMessenger::Get().PostMsg(TMSG_MEDIA_PLAY, 0, 0, static_cast<void*>(new CFileItem(*item)));
 
   return true;
 }
@@ -523,7 +524,7 @@ void CGUIWindowPVRBase::ShowRecordingInfo(CFileItem *item)
   if (item->IsPVRRecording() && pDlgInfo)
   {
     pDlgInfo->SetRecording(item);
-    pDlgInfo->DoModal();
+    pDlgInfo->Open();
   }
 }
 
@@ -568,7 +569,7 @@ void CGUIWindowPVRBase::ShowEPGInfo(CFileItem *item)
   if (tag && (!bHasChannel || g_PVRManager.CheckParentalLock(channel)) && pDlgInfo)
   {
     pDlgInfo->SetProgInfo(tag);
-    pDlgInfo->DoModal();
+    pDlgInfo->Open();
   }
 
   delete tag;
@@ -663,7 +664,7 @@ bool CGUIWindowPVRBase::ActionDeleteChannel(CFileItem *item)
   pDialog->SetLine(0, CVariant{""});
   pDialog->SetLine(1, CVariant{channel->ChannelName()});
   pDialog->SetLine(2, CVariant{""});
-  pDialog->DoModal();
+  pDialog->Open();
 
   /* prompt for the user's confirmation */
   if (!pDialog->IsConfirmed())
@@ -698,7 +699,7 @@ bool CGUIWindowPVRBase::ActionRecord(CFileItem *item)
     pDialog->SetLine(0, CVariant{""});
     pDialog->SetLine(1, CVariant{epgTag->Title()});
     pDialog->SetLine(2, CVariant{""});
-    pDialog->DoModal();
+    pDialog->Open();
 
     /* prompt for the user's confirmation */
     if (!pDialog->IsConfirmed())

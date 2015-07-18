@@ -22,7 +22,7 @@
 #include "system.h"
 #include "GUIWindowFullScreen.h"
 #include "Application.h"
-#include "ApplicationMessenger.h"
+#include "messaging/ApplicationMessenger.h"
 #ifdef HAS_VIDEO_PLAYBACK
 #include "cores/VideoRenderers/RenderManager.h"
 #endif
@@ -53,6 +53,8 @@
 #if defined(TARGET_DARWIN)
 #include "linux/LinuxResourceCounter.h"
 #endif
+
+using namespace KODI::MESSAGING;
 
 #define BLUE_BAR                          0
 #define LABEL_ROW1                       10
@@ -181,7 +183,7 @@ bool CGUIWindowFullScreen::OnAction(const CAction &action)
       if (pDialog)
       {
         CFileItem item(g_application.CurrentFileItem());
-        pDialog->DoModal();
+        pDialog->Open();
         return true;
       }
       break;
@@ -636,7 +638,7 @@ void CGUIWindowFullScreen::ToggleOSD()
     if (pOSD->IsDialogRunning())
       pOSD->Close();
     else
-      pOSD->DoModal();
+      pOSD->Open();
   }
 
   MarkDirtyRegion();
@@ -648,6 +650,6 @@ void CGUIWindowFullScreen::TriggerOSD()
   if (pOSD && !pOSD->IsDialogRunning())
   {
     pOSD->SetAutoClose(3000);
-    pOSD->DoModal();
+    pOSD->Open();
   }
 }

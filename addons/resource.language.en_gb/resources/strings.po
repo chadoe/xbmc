@@ -2787,6 +2787,11 @@ msgctxt "#643"
 msgid "Avoid clipping on ReplayGained files"
 msgstr ""
 
+#: system/settings/settings.xml
+msgctxt "#644"
+msgid "Stretch 16:9 - Nonlinear"
+msgstr ""
+
 #empty string with id 644
 
 msgctxt "#645"
@@ -12793,7 +12798,11 @@ msgctxt "#24034"
 msgid "Check for updates"
 msgstr ""
 
-#empty string with id 24035
+#: Name of an Add-on category
+#: xbmc/addons/Addon.cpp
+msgctxt "#24035"
+msgid "Image collections"
+msgstr ""
 
 msgctxt "#24036"
 msgid "Changelog"
