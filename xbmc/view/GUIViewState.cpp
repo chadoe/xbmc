@@ -19,6 +19,7 @@
  */
 
 #include "view/GUIViewState.h"
+#include "events/windows/GUIViewStateEventLog.h"
 #include "pvr/windows/GUIViewStatePVR.h"
 #include "addons/GUIViewStateAddonBrowser.h"
 #include "music/GUIViewStateMusic.h"
@@ -108,6 +109,9 @@ CGUIViewState* CGUIViewState::GetViewState(int windowId, const CFileItemList& it
   if (url.IsProtocol("androidapp"))
     return new CGUIViewStateWindowPrograms(items);
 
+  if (url.IsProtocol("activities"))
+    return new CGUIViewStateEventLog(items);
+
   if (windowId == WINDOW_MUSIC_NAV)
     return new CGUIViewStateWindowMusicNav(items);
 
@@ -167,6 +171,9 @@ CGUIViewState* CGUIViewState::GetViewState(int windowId, const CFileItemList& it
   
   if (windowId == WINDOW_ADDON_BROWSER)
     return new CGUIViewStateAddonBrowser(items);
+
+  if (windowId == WINDOW_EVENT_LOG)
+    return new CGUIViewStateEventLog(items);
 
   //  Use as fallback/default
   return new CGUIViewStateGeneral(items);
@@ -350,18 +357,18 @@ SortDescription CGUIViewState::SetNextSortMethod(int direction /* = 1 */)
 
 bool CGUIViewState::HideExtensions()
 {
-  return !CSettings::Get().GetBool("filelists.showextensions");
+  return !CSettings::Get().GetBool(CSettings::SETTING_FILELISTS_SHOWEXTENSIONS);
 }
 
 bool CGUIViewState::HideParentDirItems()
 {
-  return !CSettings::Get().GetBool("filelists.showparentdiritems");
+  return !CSettings::Get().GetBool(CSettings::SETTING_FILELISTS_SHOWPARENTDIRITEMS);
 }
 
 bool CGUIViewState::DisableAddSourceButtons()
 {
   if (CProfilesManager::Get().GetCurrentProfile().canWriteSources() || g_passwordManager.bMasterUser)
-    return !CSettings::Get().GetBool("filelists.showaddsourcebuttons");
+    return !CSettings::Get().GetBool(CSettings::SETTING_FILELISTS_SHOWADDSOURCEBUTTONS);
 
   return true;
 }
@@ -488,7 +495,7 @@ void CGUIViewState::LoadViewState(const std::string &path, int windowID)
     return;
 
   CViewState state;
-  if (db.GetViewState(path, windowID, state, CSettings::Get().GetString("lookandfeel.skin")) ||
+  if (db.GetViewState(path, windowID, state, CSettings::Get().GetString(CSettings::SETTING_LOOKANDFEEL_SKIN)) ||
       db.GetViewState(path, windowID, state, ""))
   {
     SetViewAsControl(state.m_viewMode);
@@ -507,7 +514,7 @@ void CGUIViewState::SaveViewToDb(const std::string &path, int windowID, CViewSta
   if (viewState != NULL)
     *viewState = state;
 
-  db.SetViewState(path, windowID, state, CSettings::Get().GetString("lookandfeel.skin"));
+  db.SetViewState(path, windowID, state, CSettings::Get().GetString(CSettings::SETTING_LOOKANDFEEL_SKIN));
   db.Close();
 
   if (viewState != NULL)

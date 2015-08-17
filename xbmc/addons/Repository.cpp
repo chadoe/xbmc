@@ -20,6 +20,8 @@
 
 #include <iterator>
 #include "Repository.h"
+#include "events/EventLog.h"
+#include "events/AddonManagementEvent.h"
 #include "addons/AddonDatabase.h"
 #include "addons/AddonInstaller.h"
 #include "addons/AddonManager.h"
@@ -276,7 +278,7 @@ bool CRepositoryUpdateJob::DoWork()
         !database.IsAddonBlacklisted(newAddon->ID(),newAddon->Version().asString()) &&
         deps_met)
     {
-      if (CSettings::Get().GetInt("general.addonupdates") == AUTO_UPDATES_ON)
+      if (CSettings::Get().GetInt(CSettings::SETTING_GENERAL_ADDONUPDATES) == AUTO_UPDATES_ON)
       {
         string referer;
         if (URIUtils::IsInternetStream(newAddon->Path()))
@@ -295,16 +297,17 @@ bool CRepositoryUpdateJob::DoWork()
                      database.GetAddonVersion(newAddon->ID()) > newAddon->Version();
     if (!haveNewer)
     {
-      if (!newAddon->Props().broken.empty())
+      // if the add-on is installed and has just been marked as broken (but not in the database yet)
+      // ask the user whether he wants to disable the add-on
+      if (addon && !newAddon->Props().broken.empty() && database.IsAddonBroken(newAddon->ID()).empty())
       {
-        if (database.IsAddonBroken(newAddon->ID()).empty())
-        {
-          std::string line = g_localizeStrings.Get(24096);
-          if (newAddon->Props().broken == "DEPSNOTMET")
-            line = g_localizeStrings.Get(24104);
-          if (addon && CGUIDialogYesNo::ShowAndGetInput(CVariant{newAddon->Name()}, CVariant{line}, CVariant{24097}, CVariant{""}))
-            CAddonMgr::Get().DisableAddon(newAddon->ID());
-        }
+        std::string line = g_localizeStrings.Get(24096);
+        if (newAddon->Props().broken == "DEPSNOTMET")
+          line = g_localizeStrings.Get(24104);
+        if (CGUIDialogYesNo::ShowAndGetInput(CVariant{newAddon->Name()}, CVariant{line}, CVariant{24097}, CVariant{""}))
+          CAddonMgr::Get().DisableAddon(newAddon->ID());
+
+        CEventLog::GetInstance().Add(EventPtr(new CAddonManagementEvent(newAddon, 24096)));
       }
       database.BreakAddon(newAddon->ID(), newAddon->Props().broken);
     }
@@ -312,7 +315,7 @@ bool CRepositoryUpdateJob::DoWork()
   database.CommitMultipleExecute();
   textureDB.CommitMultipleExecute();
   MarkFinished();
-  if (!notifications.empty() && CSettings::Get().GetBool("general.addonnotifications"))
+  if (!notifications.empty() && CSettings::Get().GetBool(CSettings::SETTING_GENERAL_ADDONNOTIFICATIONS))
   {
     if (notifications.size() == 1)
       CGUIDialogKaiToast::QueueNotification(notifications[0]->Icon(),

@@ -289,7 +289,7 @@ void CSkinInfo::ResolveIncludes(TiXmlElement *node, std::map<INFO::InfoPtr, bool
 
 int CSkinInfo::GetStartWindow() const
 {
-  int windowID = CSettings::Get().GetInt("lookandfeel.startupwindow");
+  int windowID = CSettings::Get().GetInt(CSettings::SETTING_LOOKANDFEEL_STARTUPWINDOW);
   assert(m_startupWindows.size());
   for (vector<CStartupWindow>::const_iterator it = m_startupWindows.begin(); it != m_startupWindows.end(); ++it)
   {
@@ -357,7 +357,7 @@ int CSkinInfo::GetFirstWindow() const
 bool CSkinInfo::IsInUse() const
 {
   // Could extend this to prompt for reverting to the standard skin perhaps
-  return CSettings::Get().GetString("lookandfeel.skin") == ID();
+  return CSettings::Get().GetString(CSettings::SETTING_LOOKANDFEEL_SKIN) == ID();
 }
 
 const INFO::CSkinVariableString* CSkinInfo::CreateSkinVariable(const std::string& name, int context)
@@ -381,10 +381,10 @@ void CSkinInfo::OnPostInstall(bool update, bool modal)
       toast->ResetTimer();
       toast->Close(true);
     }
-    if (CSettings::Get().GetString("lookandfeel.skin") == ID())
+    if (CSettings::Get().GetString(CSettings::SETTING_LOOKANDFEEL_SKIN) == ID())
       CApplicationMessenger::Get().SendMsg(TMSG_EXECUTE_BUILT_IN, -1, -1, nullptr, "ReloadSkin");
     else
-      CSettings::Get().SetString("lookandfeel.skin", ID());
+      CSettings::Get().SetString(CSettings::SETTING_LOOKANDFEEL_SKIN, ID());
   }
 }
 
@@ -476,50 +476,6 @@ void CSkinInfo::SettingOptionsSkinFontsFiller(const CSetting *setting, std::vect
 
   if (!currentValueSet)
     current = list[0].second;
-}
-
-void CSkinInfo::SettingOptionsSkinSoundFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
-{
-  std::string settingValue = ((const CSettingString*)setting)->GetValue();
-  current = "SKINDEFAULT";
-
-  list.push_back(make_pair(g_localizeStrings.Get(474), "OFF"));
-
-  if (CDirectory::Exists(URIUtils::AddFileToFolder(g_SkinInfo->Path(), "sounds")))
-    list.push_back(make_pair(g_localizeStrings.Get(15106), "SKINDEFAULT"));
-
-  ADDON::VECADDONS addons;
-  if (ADDON::CAddonMgr::Get().GetAddons(ADDON::ADDON_RESOURCE_UISOUNDS, addons))
-  {
-    for (const auto& addon : addons)
-      list.push_back(make_pair(addon->Name(), addon->ID()));
-  }
-
-  //Add sounds from special directories
-  CFileItemList items;
-  CDirectory::GetDirectory("special://xbmc/sounds/", items);
-  CDirectory::GetDirectory("special://home/sounds/", items);
-  for (int i = 0; i < items.Size(); i++)
-  {
-    CFileItemPtr pItem = items[i];
-    if (pItem->m_bIsFolder)
-    {
-      if (StringUtils::EqualsNoCase(pItem->GetLabel(), ".svn") ||
-          StringUtils::EqualsNoCase(pItem->GetLabel(), "fonts") ||
-          StringUtils::EqualsNoCase(pItem->GetLabel(), "media"))
-        continue;
-      list.push_back(make_pair(pItem->GetLabel(), pItem->GetLabel()));
-    }
-  }
-
-  sort(list.begin() + 2, list.end());
-
-  // try to find the best matching value
-  for (vector< pair<string, string> >::const_iterator it = list.begin(); it != list.end(); ++it)
-  {
-    if (StringUtils::EqualsNoCase(it->second, settingValue))
-      current = settingValue;
-  }
 }
 
 void CSkinInfo::SettingOptionsSkinThemesFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)

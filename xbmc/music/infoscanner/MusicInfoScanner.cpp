@@ -23,6 +23,8 @@
 #include "music/tags/MusicInfoTagLoaderFactory.h"
 #include "MusicAlbumInfo.h"
 #include "MusicInfoScraper.h"
+#include "events/EventLog.h"
+#include "events/MediaLibraryEvent.h"
 #include "filesystem/MusicDatabaseDirectory.h"
 #include "filesystem/MusicDatabaseDirectory/DirectoryNode.h"
 #include "Util.h"
@@ -93,7 +95,7 @@ void CMusicInfoScanner::Process()
 
     m_musicDatabase.Open();
 
-    if (m_showDialog && !CSettings::Get().GetBool("musiclibrary.backgroundupdate"))
+    if (m_showDialog && !CSettings::Get().GetBool(CSettings::SETTING_MUSICLIBRARY_BACKGROUNDUPDATE))
     {
       CGUIDialogExtendedProgressBar* dialog =
         (CGUIDialogExtendedProgressBar*)g_windowManager.GetWindow(WINDOW_DIALOG_EXT_PROGRESS);
@@ -974,10 +976,17 @@ loop:
       album.artist = StringUtils::Split(strTempArtist, g_advancedSettings.m_musicItemSeparator);
       goto loop;
     }
+    else
+    {
+      CEventLog::GetInstance().Add(EventPtr(new CMediaLibraryEvent(
+        MediaTypeAlbum, album.strPath, 24146,
+        StringUtils::Format(g_localizeStrings.Get(24147).c_str(), MediaTypeAlbum, album.strAlbum.c_str()),
+        CScraperUrl::GetThumbURL(album.thumbURL.GetFirstThumb()), CURL::GetRedacted(album.strPath), EventLevelWarning)));
+    }
   }
   else if (albumDownloadStatus == INFO_ADDED)
   {
-    album.MergeScrapedAlbum(albumInfo.GetAlbum(), CSettings::Get().GetBool("musiclibrary.overridetags"));
+    album.MergeScrapedAlbum(albumInfo.GetAlbum(), CSettings::Get().GetBool(CSettings::SETTING_MUSICLIBRARY_OVERRIDETAGS));
     m_musicDatabase.Open();
     m_musicDatabase.UpdateAlbum(album);
     GetAlbumArtwork(album.idAlbum, album);
@@ -1005,10 +1014,17 @@ loop:
         return INFO_CANCELLED;
       goto loop;
     }
+    else
+    {
+      CEventLog::GetInstance().Add(EventPtr(new CMediaLibraryEvent(
+        MediaTypeArtist, artist.strPath, 24146,
+        StringUtils::Format(g_localizeStrings.Get(24147).c_str(), MediaTypeArtist, artist.strArtist.c_str()),
+        CScraperUrl::GetThumbURL(artist.thumbURL.GetFirstThumb()), CURL::GetRedacted(artist.strPath), EventLevelWarning)));
+    }
   }
   else if (artistDownloadStatus == INFO_ADDED)
   {
-    artist.MergeScrapedArtist(artistInfo.GetArtist(), CSettings::Get().GetBool("musiclibrary.overridetags"));
+    artist.MergeScrapedArtist(artistInfo.GetArtist(), CSettings::Get().GetBool(CSettings::SETTING_MUSICLIBRARY_OVERRIDETAGS));
     m_musicDatabase.Open();
     m_musicDatabase.UpdateArtist(artist);
     m_musicDatabase.GetArtistPath(artist.idArtist, artist.strPath);
@@ -1079,7 +1095,7 @@ INFO_RET CMusicInfoScanner::DownloadAlbumInfo(const CAlbum& album, const ADDON::
       CLog::Log(LOGERROR,"Unable to find an url in nfo file: %s", strNfo.c_str());
   }
 
-  if (!scraper.CheckValidOrFallback(CSettings::Get().GetString("musiclibrary.albumsscraper")))
+  if (!scraper.CheckValidOrFallback(CSettings::Get().GetString(CSettings::SETTING_MUSICLIBRARY_ALBUMSSCRAPER)))
   { // the current scraper is invalid, as is the default - bail
     CLog::Log(LOGERROR, "%s - current and default scrapers are invalid.  Pick another one", __FUNCTION__);
     return INFO_ERROR;

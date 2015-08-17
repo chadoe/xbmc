@@ -144,7 +144,7 @@ void CVideoDatabase::CreateTables()
   columns = "CREATE TABLE tvshow ( idShow integer primary key";
 
   for (int i = 0; i < VIDEODB_MAX_COLUMNS; i++)
-    columns += StringUtils::Format(",c%02d text", i);;
+    columns += StringUtils::Format(",c%02d text", i);
 
   columns += ")";
   m_pDS->exec(columns.c_str());
@@ -177,7 +177,7 @@ void CVideoDatabase::CreateTables()
   CLog::Log(LOGINFO, "create musicvideo table");
   columns = "CREATE TABLE musicvideo ( idMVideo integer primary key, idFile integer";
   for (int i = 0; i < VIDEODB_MAX_COLUMNS; i++)
-    columns += StringUtils::Format(",c%02d text", i);;
+    columns += StringUtils::Format(",c%02d text", i);
 
   columns += ")";
   m_pDS->exec(columns.c_str());
@@ -6668,19 +6668,21 @@ std::string CVideoDatabase::GetContentForPath(const std::string& strPath)
   {
     if (scraper->Content() == CONTENT_TVSHOWS)
     {
-      if (foundDirectly)
-        return "tvshows";
-
       // check for episodes or seasons.  Assumptions are:
       // 1. if episodes are in the path then we're in episodes.
       // 2. if no episodes are found, and content was set directly on this path, then we're in shows.
       // 3. if no episodes are found, and content was not set directly on this path, we're in seasons (assumes tvshows/seasons/episodes)
-      std::string sql = PrepareSQL("SELECT count(1) FROM episode_view WHERE strPath LIKE '%s%%' LIMIT 1", strPath.c_str());
+      std::string sql = "SELECT COUNT(*) FROM episode_view ";
+
+      if (foundDirectly)
+        sql += PrepareSQL("WHERE strPath = '%s'", strPath.c_str());
+      else
+        sql += PrepareSQL("WHERE strPath LIKE '%s%%'", strPath.c_str());
 
       m_pDS->query( sql.c_str() );
       if (m_pDS->num_rows() && m_pDS->fv(0).get_asInt() > 0)
         return "episodes";
-      return "seasons";
+      return foundDirectly ? "tvshows" : "seasons";
     }
     return TranslateContent(scraper->Content());
   }
@@ -7285,7 +7287,7 @@ void CVideoDatabase::GetMoviesByName(const std::string& strSearch, CFileItemList
       int setId = m_pDS->fv("movie.idSet").get_asInt();
       CFileItemPtr pItem(new CFileItem(m_pDS->fv(1).get_asString()));
       std::string path;
-      if (setId <= 0 || !CSettings::Get().GetBool("videolibrary.groupmoviesets"))
+      if (setId <= 0 || !CSettings::Get().GetBool(CSettings::SETTING_VIDEOLIBRARY_GROUPMOVIESETS))
         path = StringUtils::Format("videodb://movies/titles/%i", movieId);
       else
         path = StringUtils::Format("videodb://movies/sets/%i/%i", setId, movieId);
@@ -8612,6 +8614,15 @@ void CVideoDatabase::ExportToXML(const std::string &path, bool singleFiles /* = 
       }
       xmlDoc.SaveFile(xmlFile);
     }
+    CVariant data;
+    if (!singleFiles)
+    {
+      data["root"] = exportRoot;
+      data["file"] = xmlFile;
+      if (iFailCount > 0)
+        data["failcount"] = iFailCount;
+    }
+    ANNOUNCEMENT::CAnnouncementManager::Get().Announce(ANNOUNCEMENT::VideoLibrary, "xbmc", "OnExport", data);
   }
   catch (...)
   {
@@ -9268,7 +9279,7 @@ bool CVideoDatabase::GetFilter(CDbUrl &videoUrl, Filter &filter, SortDescription
         sorting.sortBy = xsp.GetOrder();
       if (xsp.GetOrderDirection() != SortOrderNone)
         sorting.sortOrder = xsp.GetOrderDirection();
-      if (CSettings::Get().GetBool("filelists.ignorethewhensorting"))
+      if (CSettings::Get().GetBool(CSettings::SETTING_FILELISTS_IGNORETHEWHENSORTING))
         sorting.sortAttributes = SortAttributeIgnoreArticle;
     }
   }

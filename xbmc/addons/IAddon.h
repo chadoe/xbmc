@@ -35,6 +35,7 @@ namespace ADDON
     ADDON_VIZ,
     ADDON_SKIN,
     ADDON_PVRDLL,
+    ADDON_ADSPDLL,
     ADDON_SCRIPT,
     ADDON_SCRIPT_WEATHER,
     ADDON_SUBTITLE_MODULE,
@@ -87,6 +88,7 @@ namespace ADDON
     virtual ~IAddon() {};
     virtual AddonPtr Clone() const =0;
     virtual TYPE Type() const =0;
+    virtual TYPE FullType() const =0;
     virtual bool IsType(TYPE type) const =0;
     virtual AddonProps Props() const =0;
     virtual AddonProps& Props() =0;

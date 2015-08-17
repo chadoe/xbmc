@@ -165,7 +165,7 @@ CUPnPServer::PropagateUpdates()
     string buffer;
     map<string,pair<bool, unsigned long> >::iterator itr;
 
-    if (m_scanning || !CSettings::Get().GetBool("services.upnpannounce"))
+    if (m_scanning || !CSettings::Get().GetBool(CSettings::SETTING_SERVICES_UPNPANNOUNCE))
         return;
 
     NPT_CHECK_LABEL(FindServiceById("urn:upnp-org:serviceId:ContentDirectory", service), failed);
@@ -995,7 +995,7 @@ CUPnPServer::OnSearchContainer(PLT_ActionReference&          action,
       return BuildResponse(action, itemsall, filter, starting_index, requested_count, sort_criteria, context, NULL);
   } else if (NPT_String(search_criteria).Find("object.item.imageItem") >= 0) {
       CFileItemList items;
-      return BuildResponse(action, items, filter, starting_index, requested_count, sort_criteria, context, NULL);;
+      return BuildResponse(action, items, filter, starting_index, requested_count, sort_criteria, context, NULL);
   }
 
   return NPT_FAILURE;
