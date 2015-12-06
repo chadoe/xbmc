@@ -126,7 +126,7 @@ bool CGUIWindowVideoNav::OnMessage(CGUIMessage& message)
 
       // is this the first time the window is opened?
       if (m_vecItems->GetPath() == "?" && message.GetStringParam().empty())
-        message.SetStringParam(CSettings::Get().GetString("myvideos.defaultlibview"));
+        message.SetStringParam(CSettings::GetInstance().GetString("myvideos.defaultlibview"));
 
       if (!CGUIWindowVideoBase::OnMessage(message))
         return false;
@@ -975,9 +975,9 @@ void CGUIWindowVideoNav::GetContextButtons(int itemNumber, CContextButtons &butt
          nodetype == NODE_TYPE_MOVIES_OVERVIEW  ||
          nodetype == NODE_TYPE_MUSICVIDEOS_OVERVIEW))
       {
-        if (!item->IsPath(CSettings::Get().GetString("myvideos.defaultlibview").c_str()))
+		  if (!item->IsPath(CSettings::GetInstance().GetString("myvideos.defaultlibview").c_str()))
           buttons.Add(CONTEXT_BUTTON_SET_DEFAULT, 13335); // set default
-        if (strcmp(CSettings::Get().GetString("myvideos.defaultlibview").c_str(), ""))
+		  if (strcmp(CSettings::GetInstance().GetString("myvideos.defaultlibview").c_str(), ""))
           buttons.Add(CONTEXT_BUTTON_CLEAR_DEFAULT, 13403); // clear default
       }
 
@@ -1063,13 +1063,13 @@ bool CGUIWindowVideoNav::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
       return result;
     }
   case CONTEXT_BUTTON_SET_DEFAULT:
-    CSettings::Get().SetString("myvideos.defaultlibview", item->GetPath());
-    CSettings::Get().Save();
+	  CSettings::GetInstance().SetString("myvideos.defaultlibview", item->GetPath());
+	  CSettings::GetInstance().Save();
     return true;
 
   case CONTEXT_BUTTON_CLEAR_DEFAULT:
-    CSettings::Get().SetString("myvideos.defaultlibview", "");
-    CSettings::Get().Save();
+	  CSettings::GetInstance().SetString("myvideos.defaultlibview", "");
+	  CSettings::GetInstance().Save();
     return true;
 
   case CONTEXT_BUTTON_GO_TO_ARTIST:
