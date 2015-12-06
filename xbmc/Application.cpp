@@ -443,7 +443,6 @@ bool CApplication::Create()
   CApplicationMessenger::GetInstance().RegisterReceiver(this);
   CApplicationMessenger::GetInstance().RegisterReceiver(&g_playlistPlayer);
   CApplicationMessenger::GetInstance().RegisterReceiver(&g_infoManager);
-  CApplicationMessenger::GetInstance().RegisterReceiver(&g_AEDSPManager);
 
   for (int i = RES_HDTV_1080i; i <= RES_PAL60_16x9; i++)
   {
@@ -1111,7 +1110,7 @@ bool CApplication::Initialize()
   CEventLog::GetInstance().Add(EventPtr(new CNotificationEvent(
     StringUtils::Format(g_localizeStrings.Get(177).c_str(), g_sysinfo.GetAppName().c_str()),
     StringUtils::Format(g_localizeStrings.Get(178).c_str(), g_sysinfo.GetAppName().c_str()),
-    "special://xbmc/media/icon256x256.png", EventLevelBasic)));
+    "special://xbmc/media/icon256x256.png", EventLevel::Basic)));
 
   g_peripherals.Initialise();
 
@@ -2192,16 +2191,16 @@ bool CApplication::OnAction(const CAction &action)
     if (tag)
     {
       *m_itemCurrentFile->GetMusicInfoTag() = *tag;
-      char rating = tag->GetUserrating();
+      int userrating = tag->GetUserrating();
       bool needsUpdate(false);
-      if (rating > '0' && action.GetID() == ACTION_DECREASE_RATING)
+      if (userrating > 0 && action.GetID() == ACTION_DECREASE_RATING)
       {
-        m_itemCurrentFile->GetMusicInfoTag()->SetUserrating(rating - 1);
+        m_itemCurrentFile->GetMusicInfoTag()->SetUserrating(userrating - 1);
         needsUpdate = true;
       }
-      else if (rating < '5' && action.GetID() == ACTION_INCREASE_RATING)
+      else if (userrating < 10 && action.GetID() == ACTION_INCREASE_RATING)
       {
-        m_itemCurrentFile->GetMusicInfoTag()->SetUserrating(rating + 1);
+        m_itemCurrentFile->GetMusicInfoTag()->SetUserrating(userrating + 1);
         needsUpdate = true;
       }
       if (needsUpdate)
@@ -2567,6 +2566,13 @@ void CApplication::OnApplicationMessage(ThreadMessage* pMsg)
       StartPVRManager();
     else
       StopPVRManager();
+    break;
+
+  case TMSG_SETAUDIODSPSTATE:
+    if(pMsg->param1 == ACTIVE_AE_DSP_STATE_ON)
+      ActiveAE::CActiveAEDSP::GetInstance().Activate(pMsg->param2 == ACTIVE_AE_DSP_ASYNC_ACTIVATE);
+    else if(pMsg->param1 == ACTIVE_AE_DSP_STATE_OFF)
+      ActiveAE::CActiveAEDSP::GetInstance().Deactivate();
     break;
 
   case TMSG_START_ANDROID_ACTIVITY:

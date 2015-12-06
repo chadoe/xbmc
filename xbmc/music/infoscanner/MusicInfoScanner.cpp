@@ -587,7 +587,8 @@ void CMusicInfoScanner::FileItemsToAlbums(CFileItemList& items, VECALBUMS& album
       {
         song.iTimesPlayed = it->second.iTimesPlayed;
         song.lastPlayed = it->second.lastPlayed;
-        if (song.rating == '0')    song.rating = it->second.rating;
+        if (song.rating == 0)    song.rating = it->second.rating;
+        if (song.userrating == 0)    song.userrating = it->second.userrating;
         if (song.strThumb.empty()) song.strThumb = it->second.strThumb;
       }
     }
@@ -980,7 +981,7 @@ loop:
       CEventLog::GetInstance().Add(EventPtr(new CMediaLibraryEvent(
         MediaTypeAlbum, album.strPath, 24146,
         StringUtils::Format(g_localizeStrings.Get(24147).c_str(), MediaTypeAlbum, album.strAlbum.c_str()),
-        CScraperUrl::GetThumbURL(album.thumbURL.GetFirstThumb()), CURL::GetRedacted(album.strPath), EventLevelWarning)));
+        CScraperUrl::GetThumbURL(album.thumbURL.GetFirstThumb()), CURL::GetRedacted(album.strPath), EventLevel::Warning)));
     }
   }
   else if (albumDownloadStatus == INFO_ADDED)
@@ -1018,7 +1019,7 @@ loop:
       CEventLog::GetInstance().Add(EventPtr(new CMediaLibraryEvent(
         MediaTypeArtist, artist.strPath, 24146,
         StringUtils::Format(g_localizeStrings.Get(24147).c_str(), MediaTypeArtist, artist.strArtist.c_str()),
-        CScraperUrl::GetThumbURL(artist.thumbURL.GetFirstThumb()), CURL::GetRedacted(artist.strPath), EventLevelWarning)));
+        CScraperUrl::GetThumbURL(artist.thumbURL.GetFirstThumb()), CURL::GetRedacted(artist.strPath), EventLevel::Warning)));
     }
   }
   else if (artistDownloadStatus == INFO_ADDED)
