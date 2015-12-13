@@ -55,7 +55,7 @@
 
 #include "LanguageHook.h"
 
-#include "cores/VideoRenderers/RenderCapture.h"
+#include "cores/VideoPlayer/VideoRenderers/RenderCapture.h"
 
 #include "threads/SystemClock.h"
 #include <vector>
@@ -75,7 +75,7 @@ namespace XBMCAddon
     {
       // check for a valid loglevel
       if (level < LOGDEBUG || level > LOGNONE)
-        level = LOGNOTICE;
+        level = LOGDEBUG;
       CLog::Log(level, "%s", msg);
     }
 
@@ -532,7 +532,7 @@ namespace XBMCAddon
     int getPLAYLIST_MUSIC() { return PLAYLIST_MUSIC; }
     int getPLAYLIST_VIDEO() { return PLAYLIST_VIDEO; }
     int getPLAYER_CORE_AUTO() { return EPC_NONE; }
-    int getPLAYER_CORE_DVDPLAYER() { return EPC_DVDPLAYER; }
+    int getPLAYER_CORE_VideoPlayer() { return EPC_VideoPlayer; }
     int getPLAYER_CORE_MPLAYER() { return EPC_MPLAYER; }
     int getPLAYER_CORE_PAPLAYER() { return EPC_PAPLAYER; }
     int getTRAY_OPEN() { return TRAY_OPEN; }
@@ -562,6 +562,6 @@ namespace XBMCAddon
     int getISO_639_2(){ return CLangCodeExpander::ISO_639_2; }
     int getENGLISH_NAME() { return CLangCodeExpander::ENGLISH_NAME; }
 
-    const int lLOGNOTICE = LOGNOTICE;
+    const int lLOGDEBUG = LOGDEBUG;
   }
 }
