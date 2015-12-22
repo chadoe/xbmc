@@ -2991,7 +2991,7 @@ bool CMusicDatabase::LookupCDDBInfo(bool bRequery/*=false*/)
         pDlgSelect->Open();
 
         // Has the user selected a match...
-        int iSelectedCD = pDlgSelect->GetSelectedLabel();
+        int iSelectedCD = pDlgSelect->GetSelectedItem();
         if (iSelectedCD >= 0)
         {
           // ...query cddb for the inexact match
@@ -3074,14 +3074,14 @@ void CMusicDatabase::DeleteCDDBInfo()
     pDlg->Open();
 
     // and wait till user selects one
-    int iSelectedAlbum = pDlg->GetSelectedLabel();
+    int iSelectedAlbum = pDlg->GetSelectedItem();
     if (iSelectedAlbum < 0)
     {
       mapCDDBIds.erase(mapCDDBIds.begin(), mapCDDBIds.end());
       return ;
     }
 
-    std::string strSelectedAlbum = pDlg->GetSelectedLabelText();
+    std::string strSelectedAlbum = pDlg->GetSelectedFileItem()->GetLabel();
     std::map<ULONG, std::string>::iterator it;
     for (it = mapCDDBIds.begin();it != mapCDDBIds.end();++it)
     {
@@ -4407,11 +4407,15 @@ void CMusicDatabase::UpdateTables(int version)
      m_pDS->exec("ALTER TABLE album ADD iVotes INTEGER NOT NULL DEFAULT 0");
      m_pDS->exec("ALTER TABLE song ADD votes INTEGER NOT NULL DEFAULT 0");
    }
+   if (version < 58)
+   {
+     m_pDS->exec("UPDATE album SET fRating = fRating * 2");
+   }
 }
 
 int CMusicDatabase::GetSchemaVersion() const
 {
-  return 57;
+  return 58;
 }
 
 unsigned int CMusicDatabase::GetSongIDs(const Filter &filter, std::vector<std::pair<int,int> > &songIDs)

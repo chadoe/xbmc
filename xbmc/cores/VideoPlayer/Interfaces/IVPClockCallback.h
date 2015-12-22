@@ -1,5 +1,7 @@
+#pragma once
+
 /*
- *      Copyright (C) 2012-2013 Team XBMC
+ *      Copyright (C) 2015 Team Kodi
  *      http://xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -18,20 +20,8 @@
  *
  */
 
-#include "utils/StringUtils.h"
-#include "pvr/timers/PVRTimers.h"
-
-#include "GUIWindowPVRTimers.h"
-
-using namespace PVR;
-
-CGUIWindowPVRTimers::CGUIWindowPVRTimers(bool bRadio) :
-  CGUIWindowPVRTimersBase(bRadio, bRadio ? WINDOW_RADIO_TIMERS : WINDOW_TV_TIMERS, "MyPVRTimers.xml")
+class IVPClockCallback
 {
-}
-
-std::string CGUIWindowPVRTimers::GetDirectoryPath(void)
-{
-  const std::string basePath(CPVRTimersPath(m_bRadio, false).GetPath());
-  return StringUtils::StartsWith(m_vecItems->GetPath(), basePath) ? m_vecItems->GetPath() : basePath;
-}
+public:
+  virtual double GetInterpolatedClock() = 0;
+};

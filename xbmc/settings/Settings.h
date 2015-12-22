@@ -215,7 +215,6 @@ public:
   static const std::string SETTING_PVRPARENTAL_PIN;
   static const std::string SETTING_PVRPARENTAL_DURATION;
   static const std::string SETTING_PVRCLIENT_MENUHOOK;
-  static const std::string SETTING_PVRTIMERS_TIMERTYPEFILTER;
   static const std::string SETTING_PVRTIMERS_HIDEDISABLEDTIMERS;
   static const std::string SETTING_MUSICLIBRARY_SHOWCOMPILATIONARTISTS;
   static const std::string SETTING_MUSICLIBRARY_DOWNLOADINFO;
@@ -322,7 +321,6 @@ public:
   static const std::string SETTING_AUDIOOUTPUT_DTSPASSTHROUGH;
   static const std::string SETTING_AUDIOOUTPUT_TRUEHDPASSTHROUGH;
   static const std::string SETTING_AUDIOOUTPUT_DTSHDPASSTHROUGH;
-  static const std::string SETTING_AUDIOOUTPUT_SUPPORTSDTSHDCPUDECODING;
   static const std::string SETTING_INPUT_PERIPHERALS;
   static const std::string SETTING_INPUT_ENABLEMOUSE;
   static const std::string SETTING_INPUT_ENABLEJOYSTICK;
