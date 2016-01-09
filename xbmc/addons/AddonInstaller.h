@@ -29,13 +29,6 @@
 
 class CAddonDatabase;
 
-enum {
-  AUTO_UPDATES_ON = 0,
-  AUTO_UPDATES_NOTIFY,
-  AUTO_UPDATES_NEVER,
-  AUTO_UPDATES_MAX
-};
-
 class CAddonInstaller : public IJobCallback
 {
 public:
@@ -43,6 +36,8 @@ public:
 
   bool IsDownloading() const;
   void GetInstallList(ADDON::VECADDONS &addons) const;
+  bool HasAvailableUpdates() const;
+  ADDON::VECADDONS GetAvailableUpdates() const;
   bool GetProgress(const std::string &addonID, unsigned int &percent) const;
   bool Cancel(const std::string &addonID);
 

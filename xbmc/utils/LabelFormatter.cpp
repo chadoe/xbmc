@@ -1,6 +1,6 @@
 /*
- *      Copyright (C) 2005-2013 Team XBMC
- *      http://xbmc.org
+ *      Copyright (C) 2005-2015 Team Kodi
+ *      http://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, see
+ *  along with Kodi; see the file COPYING.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
  */
@@ -100,13 +100,14 @@ using namespace MUSIC_INFO;
  *  %Y - Year
  *  %Z - tvshow title
  *  %a - Date Added
+ *  %c - Relevance - Used for actors' appearences
  *  %d - Date and Time
  *  %p - Last Played
  *  %r - User Rating
  *  *t - Date Taken (suitable for Pictures)
  */
 
-#define MASK_CHARS "NSATBGYFLDIJRCKMEPHZOQUVXWadprt"
+#define MASK_CHARS "NSATBGYFLDIJRCKMEPHZOQUVXWacdprt"
 
 CLabelFormatter::CLabelFormatter(const std::string &mask, const std::string &mask2)
 {
@@ -252,11 +253,14 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
   case 'R': // rating
     if (music && music->GetRating() != 0.f)
       value = StringUtils::Format("%.1f", music->GetRating());
-    else if (movie && movie->m_fRating != 0.f)
-      value = StringUtils::Format("%.1f", movie->m_fRating);
+    else if (movie && movie->GetRating().rating != 0.f)
+      value = StringUtils::Format("%.1f", movie->GetRating().rating);
     break;
   case 'C': // programs count
     value = StringUtils::Format("%i", item->m_iprogramCount);
+    break;
+  case 'c': // relevance
+    value = StringUtils::Format("%i", movie->m_relevance);
     break;
   case 'K':
     value = item->m_strTitle;
@@ -296,7 +300,7 @@ std::string CLabelFormatter::GetMaskContent(const CMaskString &mask, const CFile
     }
     break;
   case 'U':
-    if (movie && movie->m_studio.size() > 0)
+    if (movie && !movie->m_studio.empty())
     {// Studios
       value = StringUtils::Join(movie ->m_studio, g_advancedSettings.m_videoItemSeparator);
     }

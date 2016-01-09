@@ -3426,19 +3426,19 @@ msgctxt "#806"
 msgid "Fulltext search (or title search only)"
 msgstr ""
 
-#. special days of week representation value for a timer schedule
+#. special days of week representation value for a timer rule
 #: xbmc/pvr/timers/PVRTimerInfoTag.cpp
 msgctxt "#807"
 msgid "Any day"
 msgstr ""
 
-#. special days of week representation for a repeating timer
+#. special days of week representation for a timer rule
 #: xbmc/pvr/timers/PVRTimerInfoTag.cpp
 msgctxt "#808"
 msgid "Every day"
 msgstr ""
 
-#. special channel representation value for a repeating timer
+#. special channel representation value for a timer rule
 #: xbmc/pvr/dialogs/GUIDialogPVRTimerSettings.cpp
 #: xbmc/pvr/timers/PVRTimerInfoTag.cpp
 msgctxt "#809"
@@ -3515,13 +3515,13 @@ msgctxt "#821"
 msgid "One time (guide-based)"
 msgstr ""
 
-#. Representation of a timer schedule
+#. Representation of a timer rule
 #: xbmc/pvr/addons/PVRClient.cpp
 msgctxt "#822"
 msgid "Repeating"
 msgstr ""
 
-#. Representation of an epg-based timer schedule.
+#. Representation of an epg-based timer rule.
 #: xbmc/pvr/addons/PVRClient.cpp
 msgctxt "#823"
 msgid "Repeating (guide-based)"
@@ -3529,10 +3529,10 @@ msgstr ""
 
 #empty strings from id 824 to 827
 
-#. Text for notification that a repeating timer has been deleted
+#. Text for notification that a timer rule has been deleted
 #: xbmc/pvr/timers/PVRTimers.cpp
 msgctxt "#828"
-msgid "Repeating timer deleted"
+msgid "Timer rule deleted"
 msgstr ""
 
 #empty strings from id 829 to 830
@@ -3588,13 +3588,13 @@ msgstr ""
 
 #empty strings from id 838 to 839
 
-#. Message in a dialog when a user wants to delete a timer that was scheduled by a repeating timer
+#. Message in a dialog when a user wants to delete a timer that was scheduled by a timer rule
 #: xbmc/pvr/windows/GUIWindowPVRBase.cpp
 msgctxt "#840"
-msgid "Do you only want to delete this timer or also the repeating timer that has scheduled it?"
+msgid "Do you only want to delete this timer or also the timer rule that has scheduled it?"
 msgstr ""
 
-#. Label for No button in a dialog when a user wants to delete a timer that was scheduled by a repeating timer
+#. Label for No button in a dialog when a user wants to delete a timer that was scheduled by a timer rule
 #: xbmc/pvr/windows/GUIWindowPVRBase.cpp
 msgctxt "#841"
 msgid "Only this"
@@ -3614,25 +3614,25 @@ msgctxt "#844"
 msgid "Deactivate"
 msgstr ""
 
-#. Message in a dialog when a user wants to delete a repeating timer
+#. Message in a dialog when a user wants to delete a timer rule
 #: xbmc/pvr/windows/GUIWindowPVRBase.cpp
 msgctxt "#845"
-msgid "Are you sure you want to delete this repeating timer and all timers it has scheduled?"
+msgid "Are you sure you want to delete this timer rule and all timers it has scheduled?"
 msgstr ""
 
-#. Message in a dialog when a user wants to delete a non-repeating timer
+#. Message in a dialog when a user wants to delete a timer
 #: xbmc/pvr/windows/GUIWindowPVRBase.cpp
 msgctxt "#846"
 msgid "Are you sure you want to delete this timer?"
 msgstr ""
 
-#. Message in a dialog when a user wants to delete a non-repeating timer
+#. Heading for a dialog for confirming to stop an active recording
 #: xbmc/pvr/windows/GUIWindowPVRBase.cpp
 msgctxt "#847"
 msgid "Confirm stop recording"
 msgstr ""
 
-#. Message in a dialog when a user wants to delete a non-repeating timer
+#. Message in a dialog when a user wants to stop an active recording
 #: xbmc/pvr/windows/GUIWindowPVRBase.cpp
 msgctxt "#848"
 msgid "Are you sure you want to stop this recording?"
@@ -5365,25 +5365,7 @@ msgctxt "#12395"
 msgid "Battery level"
 msgstr ""
 
-#. Used on the button to toggle add-on update mode in the Add-on Manager.
-#: xbmc/addons/GUIWindowAddonBrowser.cpp
-msgctxt "#12396"
-msgid "Auto updates: On"
-msgstr ""
-
-#. Used on the button to toggle add-on update mode in the Add-on Manager.
-#: xbmc/addons/GUIWindowAddonBrowser.cpp
-msgctxt "#12397"
-msgid "Auto updates: Notify"
-msgstr ""
-
-#. Used on the button to toggle add-on update mode in the Add-on Manager.
-#: xbmc/addons/GUIWindowAddonBrowser.cpp
-msgctxt "#12398"
-msgid "Auto updates: Never"
-msgstr ""
-
-#empty strings from id 12399 to 12599
+#empty strings from id 12396 to 12599
 
 #: xbmc/guilib/WindowIDs.h
 msgctxt "#12600"
@@ -9138,7 +9120,7 @@ msgctxt "#19160"
 msgid "to"
 msgstr ""
 
-#. timer schedule presentation string. <start-day-date|days-of-week> "from" <start-day-time|"any time"> "to" <end-day-time|"any time">
+#. timer rule presentation string. <start-day-date|days-of-week> "from" <start-day-time|"any time"> "to" <end-day-time|"any time">
 #: xbmc/pvr/timers/PVRTimerInfoTag.cpp
 msgctxt "#19161"
 msgid "any time"
@@ -9499,17 +9481,27 @@ msgctxt "#19239"
 msgid "Starting background threads"
 msgstr ""
 
-#: xbmc/pvr/windows/PVRClients.cpp
+#: xbmc/pvr/addons/PVRClients.cpp
 msgctxt "#19240"
 msgid "No PVR add-on enabled"
 msgstr ""
 
-#: xbmc/pvr/windows/PVRClients.cpp
+#: xbmc/pvr/addons/PVRClients.cpp
 msgctxt "#19241"
 msgid "The PVR manager has been enabled without any enabled PVR add-on. Enable at least one add-on in order to use the PVR functionality."
 msgstr ""
 
-#empty strings from id 19242 to 19243
+#. Label for context menu entry to open settings dialog for a timer
+#: xbmc/pvr/windows/GUIWindowPVRGuide.cpp
+msgctxt "#19242"
+msgid "Edit timer"
+msgstr ""
+
+#. Label for context menu entry to open settings dialog for a timer rule
+#: xbmc/pvr/windows/GUIWindowPVRGuide.cpp
+msgctxt "#19243"
+msgid "Edit timer rule"
+msgstr ""
 
 #: system/settings/settings.xml
 msgctxt "#19244"
@@ -9561,7 +9553,17 @@ msgctxt "#19254"
 msgid "Guide update failed for channel"
 msgstr ""
 
-#empty strings from id 19255 to 19256
+#. for a timer rule, the number of child timers which are currently scheduled to record. For use in "status" fields.
+#: xbmc/pvr/timers/PVRTimerInfoTag.cpp
+msgctxt "#19255"
+msgid "%d scheduled"
+msgstr ""
+
+#. for a timer rule or timer to indicate this item has completed the intended recordings. For use in "status" fields.
+#: xbmc/pvr/timers/PVRTimerInfoTag.cpp
+msgctxt "#19256"
+msgid "Completed"
+msgstr ""
 
 msgctxt "#19257"
 msgid "Lock channel"
@@ -13986,22 +13988,19 @@ msgctxt "#24993"
 msgid "Information providers"
 msgstr ""
 
-#: xbmc/addons/CGUIViewStateAddonBrowser.cpp
-#: xbmc/filesystem/AddonsDirectory.cpp
+#: system/settings/settings.xml
 msgctxt "#24994"
 msgid "Running"
 msgstr ""
 
-#: xbmc/addons/CGUIViewStateAddonBrowser.cpp
 #: xbmc/filesystem/AddonsDirectory.cpp
 msgctxt "#24995"
-msgid "Orphaned dependencies"
+msgid "Orphaned"
 msgstr ""
 
-#: xbmc/addons/CGUIViewStateAddonBrowser.cpp
-#: xbmc/filesystem/AddonsDirectory.cpp
+#: system/settings/settings.xml
 msgctxt "#24996"
-msgid "Dependencies"
+msgid "Manage dependencies"
 msgstr ""
 
 #: xbmc/filesystem/AddonsDirectory.cpp
@@ -14734,11 +14733,7 @@ msgctxt "#33038"
 msgid "%s day"
 msgstr ""
 
-#. Used in the media source dialog. Will result in "SAP Streams"
-#: dialogs/GUIDialogMediaSource.cpp
-msgctxt "#33039"
-msgid "%s streams"
-msgstr ""
+#empty string with id 33039
 
 #. Used in the media source dialog. Will result in "HDHomerun Devices"
 #: dialogs/GUIDialogMediaSource.cpp
@@ -17338,7 +17333,7 @@ msgstr ""
 #. Description of setting "TV -> Recording -> Prevent duplicate episodes" with label #812
 #: system/settings/settings.xml
 msgctxt "#36423"
-msgid "Repeating schedules shall only record new episodes. Not supported by all add-ons and backends."
+msgid "Timer rules shall only record new episodes. Not supported by all add-ons and backends."
 msgstr ""
 
 #: system/settings/settings.xml
@@ -17757,7 +17752,64 @@ msgctxt "#36603"
 msgid "This category contains the settings for how video output is handled."
 msgstr ""
 
-#empty strings from id 36604 to 36899
+#: system/settings/settings.xml
+msgctxt "#36605"
+msgid "Updates"
+msgstr ""
+
+#. Option for setting "System -> Add-ons -> Updates"
+#: system/settings/settings.xml
+msgctxt "#36606"
+msgid "Install updates automatically"
+msgstr ""
+
+#. Option for setting "System -> Add-ons -> Updates"
+#: system/settings/settings.xml
+msgctxt "#36607"
+msgid "Notify, but don't install updates"
+msgstr ""
+
+#. Option for setting "System -> Add-ons -> Updates"
+#: system/settings/settings.xml
+msgctxt "#36608"
+msgid "Never check for updates"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#36609"
+msgid "Show notifications"
+msgstr ""
+
+#. Description of settings category "System -> Add-ons"
+#: system/settings/settings.xml
+msgctxt "#36610"
+msgid "This category contains settings for the add-on system."
+msgstr ""
+
+#. Description of setting "System -> Add-ons -> Updates" with label #36605
+#: system/settings/settings.xml
+msgctxt "#36611"
+msgid "Change how auto updating of add-ons are handled."
+msgstr ""
+
+#. Description of setting "System -> Add-ons -> Show notifications" with label #36609
+#: system/settings/settings.xml
+msgctxt "#36612"
+msgid "Show notification when an add-on have been updated."
+msgstr ""
+
+#. Description of setting "System -> Add-ons -> Manage dependencies" with label #24996
+msgctxt "#36613"
+msgid "Manage modules and support libraries that have been automatically installed as a dependency to other add-ons. Items listed as \"Orphaned\" are no longer required by any add-ons and are safe to uninstall."
+msgstr ""
+
+#. Description of setting "System -> Add-ons -> Running" with label #24994
+#: system/settings/settings.xml
+msgctxt "#36614"
+msgid "Show add-ons that are currently running in the background."
+msgstr ""
+
+#empty strings from id 36615 to 36899
 
 #: xbmc/media/MediaType.cpp
 msgctxt "#36900"
@@ -18152,4 +18204,31 @@ msgstr ""
 #: \xbmc\settings\dialogs\GUIDialogContentSettings.cpp
 msgctxt "#38025"
 msgid "Choose information provider"
+msgstr ""
+
+#: xbmc/view/GUIViewStateVideo.cpp
+msgctxt "#38026"
+msgid "Appearances"
+msgstr ""
+
+#: system/settings/rbp.xml
+msgctxt "#38027"
+msgid "Decode the stereo stream from 3D files"
+msgstr ""
+
+#. Description of setting "Decode the stereo stream from 3D files" with label #38027
+#: system/settings/rbp.xml
+msgctxt "#38028"
+msgid "If enabled, videos created in Multiview Video Coding (MVC) format can also be watched in stereoscopic 3D. MVC format is typically found on 3D Blu-rays.[CR]Note: Processing of this data may reduce playback performance, so only enable if you require stereoscopic 3D support."
+msgstr ""
+
+#: system/settings/rbp.xml
+msgctxt "#38029"
+msgid "Enable Full HD HDMI modes for stereoscopic 3D"
+msgstr ""
+
+#. Description of setting "Enable Full HD HDMI modes for stereoscopic 3D" with label #38029
+#: system/settings/rbp.xml
+msgctxt "#38030"
+msgid "This option uses frame-packing to output full resolution for 3D through HDMI.[CR]Enabling this improves quality of Multiview Video Coding (MVC) videos, but may not be supported by all displays."
 msgstr ""

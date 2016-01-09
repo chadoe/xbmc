@@ -26,7 +26,7 @@
 #include "cores/VideoPlayer/VideoRenderers/OverlayRenderer.h"
 #include "guilib/Geometry.h"
 #include "guilib/Resolution.h"
-#include "threads/SharedSection.h"
+#include "threads/CriticalSection.h"
 #include "settings/VideoSettings.h"
 #include "OverlayRenderer.h"
 #include <deque>
@@ -122,15 +122,7 @@ public:
    */
   void FlipPage(volatile bool& bStop, double timestamp = 0.0, double pts = 0.0, int source = -1, EFIELDSYNC sync = FS_NONE);
 
-  void AddOverlay(CDVDOverlay* o, double pts)
-  {
-    { CSingleLock lock(m_presentlock);
-      if (m_free.empty())
-        return;
-    }
-    CSharedLock lock(m_sharedSection);
-    m_overlays.AddOverlay(o, pts, m_free.front());
-  }
+  void AddOverlay(CDVDOverlay* o, double pts);
 
   // Get renderer info, can be called before configure
   CRenderInfo GetRenderInfo();
@@ -175,7 +167,7 @@ protected:
 
   CBaseRenderer *m_pRenderer;
   OVERLAY::CRenderer m_overlays;
-  CSharedSection m_sharedSection;
+  CCriticalSection m_critSection;
   bool m_bTriggerUpdateResolution;
   bool m_bRenderGUI;
   int m_waitForBufferCount;

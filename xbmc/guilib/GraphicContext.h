@@ -77,11 +77,6 @@ public:
 
   virtual void OnSettingChanged(const CSetting *setting) override;
 
-  // the following two functions should wrap any
-  // GL calls to maintain thread safety
-  void BeginPaint(bool lock=true);
-  void EndPaint(bool lock=true);
-
   int GetWidth() const { return m_iScreenWidth; }
   int GetHeight() const { return m_iScreenHeight; }
   float GetFPS() const;
@@ -97,7 +92,7 @@ public:
   const CRect GetViewWindow() const;
   void SetViewWindow(float left, float top, float right, float bottom);
   bool IsFullScreenRoot() const;
-  bool ToggleFullScreenRoot();
+  void ToggleFullScreen();
   void SetFullScreenVideo(bool bOnOff);
   bool IsFullScreenVideo() const;
   bool IsCalibrating() const;

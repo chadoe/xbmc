@@ -114,6 +114,7 @@ public:
   void* stream; // pointer or integer, identifying stream playing. if it changes stream changed
   int changes; // remembered counter from stream to track codec changes
   bool inited;
+  unsigned int packets;
   IDVDStreamPlayer::ESyncState syncState;
   double starttime;
   double cachetime;
@@ -142,6 +143,7 @@ public:
     stream = NULL;
     changes = 0;
     inited = false;
+    packets = 0;
     syncState = IDVDStreamPlayer::SYNC_STARTING;
     starttime = DVD_NOPTS_VALUE;
     startpts = DVD_NOPTS_VALUE;
@@ -429,6 +431,7 @@ protected:
   bool m_bAbortRequest;
 
   ECacheState  m_caching;
+  XbmcThreads::EndTime m_cachingTimer;
   CFileItem    m_item;
   XbmcThreads::EndTime m_ChannelEntryTimeOut;
 
@@ -441,6 +444,7 @@ protected:
   CSelectionStreams m_SelectionStreams;
 
   int m_playSpeed;
+  int m_streamPlayerSpeed;
   struct SSpeedState
   {
     double  lastpts;  // holds last display pts during ff/rw operations
@@ -479,9 +483,11 @@ protected:
       iSelectedAudioStream = -1;
       iDVDStillTime        =  0;
       iDVDStillStartTime   =  0;
+      syncClock = false;
     }
 
     int state;                // current dvdstate
+    bool syncClock;
     unsigned int iDVDStillTime;      // total time in ticks we should display the still before continuing
     unsigned int iDVDStillStartTime; // time in ticks when we started the still
     int iSelectedSPUStream;   // mpeg stream id, or -1 if disabled

@@ -411,30 +411,6 @@ void CGraphicContext::SetVideoResolutionInternal(RESOLUTION res, bool forceUpdat
   Lock();
 
   RESOLUTION_INFO info_org  = CDisplaySettings::GetInstance().GetResolutionInfo(res);
-  RESOLUTION_INFO info_last = CDisplaySettings::GetInstance().GetResolutionInfo(lastRes);
-
-  RENDER_STEREO_MODE stereo_mode = m_stereoMode;
-
-  // if the new resolution is an actual stereo mode, switch to that
-  // if the old resolution was an actual stereo mode and renderer is still in old 3D mode, switch to no 3d mode
-  if (info_org.dwFlags & D3DPRESENTFLAG_MODE3DTB)
-    stereo_mode = RENDER_STEREO_MODE_SPLIT_HORIZONTAL;
-  else if (info_org.dwFlags & D3DPRESENTFLAG_MODE3DSBS)
-    stereo_mode = RENDER_STEREO_MODE_SPLIT_VERTICAL;
-  else if ((info_last.dwFlags & D3DPRESENTFLAG_MODE3DTB)
-        && m_stereoMode == RENDER_STEREO_MODE_SPLIT_HORIZONTAL)
-    stereo_mode = RENDER_STEREO_MODE_OFF;
-  else if ((info_last.dwFlags & D3DPRESENTFLAG_MODE3DSBS)
-        && m_stereoMode == RENDER_STEREO_MODE_SPLIT_VERTICAL)
-    stereo_mode = RENDER_STEREO_MODE_OFF;
-
-  if(stereo_mode != m_stereoMode)
-  {
-    m_stereoView     = RENDER_STEREO_VIEW_OFF;
-    m_stereoMode     = stereo_mode;
-    m_nextStereoMode = stereo_mode;
-    CSettings::GetInstance().SetInt(CSettings::SETTING_VIDEOSCREEN_STEREOSCOPICMODE, (int)m_stereoMode);
-  }
 
   RESOLUTION_INFO info_mod = GetResInfo(res);
 
@@ -973,22 +949,12 @@ float CGraphicContext::GetFPS() const
   return 60.0f;
 }
 
-void CGraphicContext::BeginPaint(bool lock)
-{
-  if (lock) Lock();
-}
-
-void CGraphicContext::EndPaint(bool lock)
-{
-  if (lock) Unlock();
-}
-
 bool CGraphicContext::IsFullScreenRoot () const
 {
   return m_bFullScreenRoot;
 }
 
-bool CGraphicContext::ToggleFullScreenRoot ()
+void CGraphicContext::ToggleFullScreen()
 {
   RESOLUTION uiRes;
 
@@ -1002,13 +968,9 @@ bool CGraphicContext::ToggleFullScreenRoot ()
       uiRes = CDisplaySettings::GetInstance().GetCurrentResolution();
     else
       uiRes = (RESOLUTION) g_Windowing.DesktopResolution(g_Windowing.GetCurrentScreen());
-
-    g_application.m_pPlayer->TriggerUpdateResolution();
   }
 
   CDisplaySettings::GetInstance().SetCurrentResolution(uiRes, true);
-
-  return m_bFullScreenRoot;
 }
 
 void CGraphicContext::SetMediaDir(const std::string &strMediaDir)

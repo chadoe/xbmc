@@ -426,11 +426,7 @@ void CAddonInstaller::PrunePackageCache()
 
 void CAddonInstaller::InstallUpdates(bool includeBlacklisted /* = false */)
 {
-  VECADDONS addons = CAddonMgr::GetInstance().GetOutdated();
-  if (addons.empty())
-    return;
-
-  for (const auto& addon : addons)
+  for (const auto& addon : GetAvailableUpdates())
   {
     if (includeBlacklisted || !CAddonMgr::GetInstance().IsBlacklisted(addon->ID()))
       CAddonInstaller::GetInstance().InstallOrUpdate(addon->ID());
@@ -474,6 +470,32 @@ int64_t CAddonInstaller::EnumeratePackageFolder(std::map<std::string,CFileItemLi
   }
 
   return size;
+}
+
+
+VECADDONS CAddonInstaller::GetAvailableUpdates() const
+{
+  CAddonDatabase database;
+  database.Open();
+
+  VECADDONS addons;
+  database.GetAddons(addons);
+
+  auto isUpdated = [&](const AddonPtr& repoAddon)
+  {
+    AddonPtr localAddon;
+    if (!CAddonMgr::GetInstance().GetAddon(repoAddon->ID(), localAddon))
+      return true;
+    return localAddon->Version() >= repoAddon->Version();
+  };
+
+  addons.erase(std::remove_if(addons.begin(), addons.end(), isUpdated), addons.end());
+  return addons;
+}
+
+bool CAddonInstaller::HasAvailableUpdates() const
+{
+  return !GetAvailableUpdates().empty();
 }
 
 CAddonInstallJob::CAddonInstallJob(const AddonPtr &addon, const AddonPtr &repo, const std::string &hash /* = "" */)
@@ -619,7 +641,7 @@ bool CAddonInstallJob::DoWork()
   // run any post-install guff
   CEventLog::GetInstance().Add(
     EventPtr(new CAddonManagementEvent(m_addon, m_update ? 24065 : 24064)),
-    !IsModal() && CSettings::GetInstance().GetBool(CSettings::SETTING_GENERAL_ADDONNOTIFICATIONS), false);
+    !IsModal() && CSettings::GetInstance().GetBool(CSettings::SETTING_ADDONS_NOTIFICATIONS), false);
 
   ADDON::OnPostInstall(m_addon, m_update, IsModal());
 

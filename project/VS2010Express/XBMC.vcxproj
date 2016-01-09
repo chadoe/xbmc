@@ -144,7 +144,7 @@
     </Manifest>
     <FxCompile />
     <PostBuildEvent>
-      <Command>copy “$(WindowsSdkDir)redist\d3d\x86\D3DCompile*.DLL” “$(TargetDir)”</Command>
+      <Command>copy "$(WindowsSdkDir)redist\d3d\x86\D3DCompile*.DLL" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -177,7 +177,7 @@
     </Manifest>
     <FxCompile />
     <PostBuildEvent>
-      <Command>copy “$(WindowsSdkDir)redist\d3d\x86\D3DCompile*.DLL” “$(TargetDir)”</Command>
+      <Command>copy "$(WindowsSdkDir)redist\d3d\x86\D3DCompile*.DLL" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -190,6 +190,7 @@
     <ClCompile Include="..\..\xbmc\addons\AddonCallbacksPVR.cpp" />
     <ClCompile Include="..\..\xbmc\addons\AddonDatabase.cpp" />
     <ClCompile Include="..\..\xbmc\addons\AddonInstaller.cpp" />
+    <ClCompile Include="..\..\xbmc\addons\AddonSystemSettings.cpp" />
     <ClCompile Include="..\..\xbmc\addons\AddonVersion.cpp" />
     <ClCompile Include="..\..\xbmc\addons\ContextMenuAddon.cpp" />
     <ClCompile Include="..\..\xbmc\addons\AudioDecoder.cpp" />
@@ -393,8 +394,6 @@
     <ClCompile Include="..\..\xbmc\filesystem\ResourceDirectory.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\ResourceFile.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\RSSDirectory.cpp" />
-    <ClCompile Include="..\..\xbmc\filesystem\SAPDirectory.cpp" />
-    <ClCompile Include="..\..\xbmc\filesystem\SAPFile.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\SFTPDirectory.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\SFTPFile.cpp" />
     <ClCompile Include="..\..\xbmc\filesystem\ShoutcastFile.cpp" />
@@ -445,7 +444,6 @@
     <ClCompile Include="..\..\xbmc\filesystem\ZipManager.cpp" />
     <ClCompile Include="..\..\xbmc\GUIInfoManager.cpp" />
     <ClCompile Include="..\..\xbmc\GUILargeTextureManager.cpp" />
-    <ClCompile Include="..\..\xbmc\guilib\cximage.cpp" />
     <ClCompile Include="..\..\xbmc\guilib\D3DResource.cpp" />
     <ClCompile Include="..\..\xbmc\guilib\DDSImage.cpp" />
     <ClCompile Include="..\..\xbmc\guilib\DirectXGraphics.cpp" />
@@ -517,7 +515,6 @@
     <ClCompile Include="..\..\xbmc\guilib\GUIWrappingListContainer.cpp" />
     <ClCompile Include="..\..\xbmc\guilib\imagefactory.cpp" />
     <ClCompile Include="..\..\xbmc\guilib\IWindowManagerCallback.cpp" />
-    <ClCompile Include="..\..\xbmc\guilib\JpegIO.cpp" />
     <ClCompile Include="..\..\xbmc\guilib\LocalizeStrings.cpp" />
     <ClCompile Include="..\..\xbmc\guilib\MatrixGLES.cpp" />
     <ClCompile Include="..\..\xbmc\guilib\Resolution.cpp" />
@@ -1002,7 +999,6 @@
     <ClInclude Include="..\..\xbmc\filesystem\XbtFile.h" />
     <ClInclude Include="..\..\xbmc\filesystem\XbtManager.h" />
     <ClInclude Include="..\..\xbmc\guiinfo\GUIInfoLabels.h" />
-    <ClInclude Include="..\..\xbmc\guilib\cximage.h" />
     <ClInclude Include="..\..\xbmc\guilib\DispResource.h" />
     <ClInclude Include="..\..\xbmc\guilib\FFmpegImage.h" />
     <ClInclude Include="..\..\xbmc\guilib\Gif.h" />
@@ -1272,8 +1268,6 @@
     <ClInclude Include="..\..\xbmc\filesystem\RarFile.h" />
     <ClInclude Include="..\..\xbmc\filesystem\RarManager.h" />
     <ClInclude Include="..\..\xbmc\filesystem\RSSDirectory.h" />
-    <ClInclude Include="..\..\xbmc\filesystem\SAPDirectory.h" />
-    <ClInclude Include="..\..\xbmc\filesystem\SAPFile.h" />
     <ClInclude Include="..\..\xbmc\filesystem\SFTPDirectory.h" />
     <ClInclude Include="..\..\xbmc\filesystem\SFTPFile.h" />
     <ClInclude Include="..\..\xbmc\filesystem\ShoutcastFile.h" />
@@ -1632,7 +1626,6 @@
     <ClCompile Include="..\..\xbmc\win32\Win32DelayedDllLoad.cpp" />
     <ClCompile Include="..\..\xbmc\win32\WIN32Util.cpp" />
     <ClCompile Include="..\..\xbmc\win32\WindowHelper.cpp" />
-    <ClCompile Include="..\..\xbmc\cores\DummyVideoPlayer.cpp" />
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDAudio.cpp" />
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDClock.cpp" />
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDDemuxSPU.cpp" />
@@ -1654,7 +1647,6 @@
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\DVDFactoryCodec.cpp" />
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Audio\DVDAudioCodecFFmpeg.cpp" />
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoCodecFFmpeg.cpp" />
-    <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoCodecLibMpeg2.cpp" />
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoPPFFmpeg.cpp" />
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DXVA.cpp" />
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Overlay\DVDOverlayCodec.cpp" />
@@ -1800,6 +1792,7 @@
     <ClInclude Include="..\..\xbmc\addons\AddonCallbacksPVR.h" />
     <ClInclude Include="..\..\xbmc\addons\AddonDatabase.h" />
     <ClInclude Include="..\..\xbmc\addons\AddonInstaller.h" />
+    <ClInclude Include="..\..\xbmc\addons\AddonSystemSettings.h" />
     <ClInclude Include="..\..\xbmc\addons\AddonVersion.h" />
     <ClInclude Include="..\..\xbmc\addons\DllLibCPluff.h" />
     <ClInclude Include="..\..\xbmc\addons\DllPVRClient.h" />
@@ -1939,7 +1932,6 @@
     <ClInclude Include="..\..\xbmc\guilib\IAudioDeviceChangedCallback.h" />
     <ClInclude Include="..\..\xbmc\guilib\IMsgTargetCallback.h" />
     <ClInclude Include="..\..\xbmc\guilib\IWindowManagerCallback.h" />
-    <ClInclude Include="..\..\xbmc\guilib\JpegIO.h" />
     <ClInclude Include="..\..\xbmc\guilib\LocalizeStrings.h" />
     <ClInclude Include="..\..\xbmc\guilib\MatrixGLES.h" />
     <ClInclude Include="..\..\xbmc\guilib\Resolution.h" />
@@ -2058,7 +2050,6 @@
     <ClInclude Include="..\..\xbmc\peripherals\dialogs\GUIDialogPeripheralSettings.h" />
     <ClInclude Include="..\..\xbmc\peripherals\Peripherals.h" />
     <ClInclude Include="..\..\xbmc\peripherals\PeripheralTypes.h" />
-    <ClInclude Include="..\..\xbmc\pictures\DllImageLib.h" />
     <ClInclude Include="..\..\xbmc\pictures\DllLibExif.h" />
     <ClInclude Include="..\..\xbmc\pictures\GUIDialogPictureInfo.h" />
     <ClInclude Include="..\..\xbmc\pictures\GUIViewStatePictures.h" />
@@ -2269,7 +2260,6 @@
     <ClInclude Include="..\..\xbmc\win32\stdio_utf8.h" />
     <ClInclude Include="..\..\xbmc\win32\WIN32Util.h" />
     <ClInclude Include="..\..\xbmc\win32\WindowHelper.h" />
-    <ClInclude Include="..\..\xbmc\cores\DummyVideoPlayer.h" />
     <ClInclude Include="..\..\xbmc\cores\IPlayer.h" />
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDAudio.h" />
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDClock.h" />
@@ -2297,7 +2287,6 @@
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DllLibMpeg2.h" />
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoCodec.h" />
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoCodecFFmpeg.h" />
-    <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoCodecLibMpeg2.h" />
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoPPFFmpeg.h" />
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DXVA.h" />
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Overlay\DVDOverlay.h" />

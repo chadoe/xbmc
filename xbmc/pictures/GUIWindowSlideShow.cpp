@@ -263,10 +263,6 @@ void CGUIWindowSlideShow::OnDeinitWindow(int nextWindowID)
     //g_graphicsContext.SetVideoResolution(CDisplaySettings::GetInstance().GetCurrentResolution(), TRUE);
   }
 
-  //   Reset();
-  if (nextWindowID != WINDOW_PICTURES)
-    m_ImageLib.Unload();
-
   if (nextWindowID != WINDOW_FULLSCREEN_VIDEO)
   {
     // wait for any outstanding picture loads
@@ -936,8 +932,6 @@ bool CGUIWindowSlideShow::OnMessage(CGUIMessage& message)
         m_Resolution = g_graphicsContext.GetVideoResolution();
 
       CGUIWindow::OnMessage(message);
-      if (message.GetParam1() != WINDOW_PICTURES)
-        m_ImageLib.Load();
 
       // turn off slideshow if we only have 1 image
       if (m_slides->Size() <= 1)
@@ -1116,7 +1110,7 @@ bool CGUIWindowSlideShow::PlayVideo()
     return false;
   CLog::Log(LOGDEBUG, "Playing current video slide %s", item->GetPath().c_str());
   m_bPlayingVideo = true;
-  PlayBackRet ret = g_application.PlayFile(*item);
+  PlayBackRet ret = g_application.PlayFile(*item, "");
   if (ret == PLAYBACK_OK)
     return true;
   if (ret == PLAYBACK_FAIL)

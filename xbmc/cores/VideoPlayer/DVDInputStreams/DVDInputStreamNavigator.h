@@ -108,6 +108,7 @@ public:
 
   bool HasMenu() { return true; }
   bool IsInMenu() { return m_bInMenu; }
+  double GetTimeStampCorrection() { return (double)(m_iVobUnitCorrection * 1000) / 90; }
 
   int GetActiveSubtitleStream();
   int GetSubTitleStreamCount();
@@ -141,11 +142,11 @@ public:
   bool GetDVDTitleString(std::string& titleStr);
   bool GetDVDSerialString(std::string& serialStr);
 
+  void CheckButtons();
+
 protected:
 
   int ProcessBlock(uint8_t* buffer, int* read);
-
-  void CheckButtons();
 
   /**
    * XBMC     : the audio stream id we use in xbmc

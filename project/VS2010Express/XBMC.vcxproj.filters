@@ -393,9 +393,6 @@
     <ClCompile Include="..\..\xbmc\win32\WindowHelper.cpp">
       <Filter>win32</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\DummyVideoPlayer.cpp">
-      <Filter>cores</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDAudio.cpp">
       <Filter>cores\VideoPlayer</Filter>
     </ClCompile>
@@ -457,9 +454,6 @@
       <Filter>cores\VideoPlayer\DVDCodecs\Audio</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoCodecFFmpeg.cpp">
-      <Filter>cores\VideoPlayer\DVDCodecs\Video</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoCodecLibMpeg2.cpp">
       <Filter>cores\VideoPlayer\DVDCodecs\Video</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoPPFFmpeg.cpp">
@@ -1569,6 +1563,9 @@
     <ClCompile Include="..\..\xbmc\addons\AddonInstaller.cpp">
       <Filter>addons</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\xbmc\addons\AddonSystemSettings.cpp">
+      <Filter>addons</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\xbmc\epg\Epg.cpp">
       <Filter>epg</Filter>
     </ClCompile>
@@ -1766,9 +1763,6 @@
     </ClCompile>
     <ClCompile Include="..\..\xbmc\interfaces\json-rpc\ApplicationOperations.cpp">
       <Filter>interfaces\json-rpc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\JpegIO.cpp">
-      <Filter>guilib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\interfaces\info\SkinVariable.cpp">
       <Filter>interfaces\info</Filter>
@@ -1981,12 +1975,6 @@
       <Filter>filesystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\filesystem\RSSDirectory.cpp">
-      <Filter>filesystem</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\filesystem\SAPDirectory.cpp">
-      <Filter>filesystem</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\filesystem\SAPFile.cpp">
       <Filter>filesystem</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\filesystem\SFTPDirectory.cpp">
@@ -2609,9 +2597,6 @@
       <Filter>view</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\guilib\imagefactory.cpp">
-      <Filter>guilib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\guilib\cximage.cpp">
       <Filter>guilib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\xbmc\filesystem\DAVFile.cpp">
@@ -3269,9 +3254,6 @@
     <ClInclude Include="..\..\xbmc\win32\WindowHelper.h">
       <Filter>win32</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\DummyVideoPlayer.h">
-      <Filter>cores</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\IPlayer.h">
       <Filter>cores</Filter>
     </ClInclude>
@@ -3351,9 +3333,6 @@
       <Filter>cores\VideoPlayer\DVDCodecs\Video</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoCodecFFmpeg.h">
-      <Filter>cores\VideoPlayer\DVDCodecs\Video</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoCodecLibMpeg2.h">
       <Filter>cores\VideoPlayer\DVDCodecs\Video</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\VideoPlayer\DVDCodecs\Video\DVDVideoPPFFmpeg.h">
@@ -4246,9 +4225,6 @@
     <ClInclude Include="..\..\xbmc\network\windows\NetworkWin32.h">
       <Filter>network\windows</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\pictures\DllImageLib.h">
-      <Filter>pictures</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\pictures\DllLibExif.h">
       <Filter>pictures</Filter>
     </ClInclude>
@@ -4624,6 +4600,9 @@
     <ClInclude Include="..\..\xbmc\addons\AddonInstaller.h">
       <Filter>addons</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\xbmc\addons\AddonSystemSettings.h">
+      <Filter>addons</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\xbmc\epg\EpgSearchFilter.h">
       <Filter>epg</Filter>
     </ClInclude>
@@ -4834,9 +4813,6 @@
     <ClInclude Include="..\..\xbmc\interfaces\json-rpc\ApplicationOperations.h">
       <Filter>interfaces\json-rpc</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\JpegIO.h">
-      <Filter>guilib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\xbmc\interfaces\info\SkinVariable.h">
       <Filter>interfaces\info</Filter>
     </ClInclude>
@@ -5018,12 +4994,6 @@
       <Filter>filesystem</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\filesystem\RSSDirectory.h">
-      <Filter>filesystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\filesystem\SAPDirectory.h">
-      <Filter>filesystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\filesystem\SAPFile.h">
       <Filter>filesystem</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\filesystem\SFTPDirectory.h">
@@ -5560,9 +5530,6 @@
       <Filter>guilib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\guilib\imagefactory.h">
-      <Filter>guilib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\guilib\cximage.h">
       <Filter>guilib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\video\FFmpegVideoDecoder.h">

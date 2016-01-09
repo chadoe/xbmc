@@ -717,15 +717,19 @@
 #define LISTITEM_EPG_EVENT_TITLE    (LISTITEM_START + 151)
 #define LISTITEM_DATETIME           (LISTITEM_START + 152)
 #define LISTITEM_USER_RATING        (LISTITEM_START + 153)
+#define LISTITEM_TAG                (LISTITEM_START + 154)
+#define LISTITEM_SET                (LISTITEM_START + 155)
 
 #define LISTITEM_PROPERTY_START     (LISTITEM_START + 200)
-#define LISTITEM_PROPERTY_END       (LISTITEM_PROPERTY_START + 1000)
+#define LISTITEM_PROPERTY_END       (LISTITEM_PROPERTY_START + 1200)
 #define LISTITEM_END                (LISTITEM_PROPERTY_END)
 
-#define MUSICPLAYER_PROPERTY_OFFSET 800 // 100 id's reserved for musicplayer props.
-#define LISTITEM_ART_OFFSET         900 // 100 id's reserved for listitem art.
+#define MUSICPLAYER_PROPERTY_OFFSET 800  // 100 id's reserved for musicplayer props.
+#define LISTITEM_ART_OFFSET         900  // 100 id's reserved for listitem art.
+#define LISTITEM_RATING_OFFSET      1000 // 100 id's reserved for listitem ratings.
+#define LISTITEM_VOTES_OFFSET       1100 // 100 id's reserved for listitem votes.
 
-#define CONDITIONAL_LABEL_START       LISTITEM_END + 1 // 36201
+#define CONDITIONAL_LABEL_START       LISTITEM_END + 1 // 36401
 #define CONDITIONAL_LABEL_END         37000
 
 // the multiple information vector

@@ -157,14 +157,13 @@ JSONRPC_STATUS CVideoLibrary::GetTVShows(const std::string &method, ITransportLa
   if (!videoUrl.FromString("videodb://tvshows/titles/"))
     return InternalError;
 
-  int genreID = -1, year = -1;
   const CVariant &filter = parameterObject["filter"];
   if (filter.isMember("genreid"))
-    genreID = (int)filter["genreid"].asInteger();
+    videoUrl.AddOption("genreid", (int)filter["genreid"].asInteger());
   else if (filter.isMember("genre"))
     videoUrl.AddOption("genre", filter["genre"].asString());
   else if (filter.isMember("year"))
-    year = (int)filter["year"].asInteger();
+    videoUrl.AddOption("year", (int)filter["year"].asInteger());
   else if (filter.isMember("actor"))
     videoUrl.AddOption("actor", filter["actor"].asString());
   else if (filter.isMember("studio"))
@@ -181,7 +180,8 @@ JSONRPC_STATUS CVideoLibrary::GetTVShows(const std::string &method, ITransportLa
   }
 
   CFileItemList items;
-  if (!videodatabase.GetTvShowsNav(videoUrl.ToString(), items, genreID, year, -1, -1, -1, -1, sorting))
+  CDatabase::Filter nofilter;
+  if (!videodatabase.GetTvShowsByWhere(videoUrl.ToString(), nofilter, items, sorting))
     return InvalidParams;
 
   bool additionalInfo = false;
@@ -1124,7 +1124,26 @@ void CVideoLibrary::UpdateVideoTag(const CVariant &parameterObject, CVideoInfoTa
   if (ParameterNotNull(parameterObject, "track"))
     details.m_iTrack = (int)parameterObject["track"].asInteger();
   if (ParameterNotNull(parameterObject, "rating"))
-    details.m_fRating = parameterObject["rating"].asFloat();
+  {
+    details.SetRating(parameterObject["rating"].asFloat());
+    if (ParameterNotNull(parameterObject, "votes"))
+      details.SetVotes(StringUtils::ReturnDigits(parameterObject["votes"].asString()));
+    updatedDetails.insert("ratings");
+  }
+  if (ParameterNotNull(parameterObject, "ratings"))
+  {
+    CVariant ratings = parameterObject["ratings"];
+    for (CVariant::const_iterator_map rIt = ratings.begin_map(); rIt != ratings.end_map(); rIt++)
+    {
+      if (rIt->second.isArray() && ParameterNotNull(rIt->second, "name") && ParameterNotNull(rIt->second, "rating"))
+      {
+        details.SetRating(rIt->second["rating"].asFloat(), rIt->second["name"].asString());
+        if (ParameterNotNull(rIt->second, "votes"))
+          details.SetVotes(StringUtils::ReturnDigits(parameterObject["votes"].asString()), rIt->second["name"].asString());
+      }
+    }
+    updatedDetails.insert("ratings");
+  }
   if (ParameterNotNull(parameterObject, "userrating"))
     details.m_iUserRating = parameterObject["userrating"].asInteger();
   if (ParameterNotNull(parameterObject, "mpaa"))
@@ -1133,8 +1152,6 @@ void CVideoLibrary::UpdateVideoTag(const CVariant &parameterObject, CVideoInfoTa
     details.SetIMDBNumber(parameterObject["imdbnumber"].asString());
   if (ParameterNotNull(parameterObject, "premiered"))
     SetFromDBDate(parameterObject["premiered"], details.m_premiered);
-  if (ParameterNotNull(parameterObject, "votes"))
-    details.SetVotes(parameterObject["votes"].asString());
   if (ParameterNotNull(parameterObject, "lastplayed"))
     SetFromDBDateTime(parameterObject["lastplayed"], details.m_lastPlayed);
   if (ParameterNotNull(parameterObject, "firstaired"))
