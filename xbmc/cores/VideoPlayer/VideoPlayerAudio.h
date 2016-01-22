@@ -39,7 +39,6 @@ class CDVDAudioCodec;
 #define DECODE_FLAG_RESYNC  2
 #define DECODE_FLAG_ERROR   4
 #define DECODE_FLAG_ABORT   8
-#define DECODE_FLAG_TIMEOUT 16
 
 class CPTSInputQueue
 {
@@ -130,10 +129,11 @@ protected:
         Release();
     }
 
-    CDVDMsgDemuxerPacket*  msg;
-    uint8_t*               data;
-    int                    size;
-    double                 dts;
+    CDVDMsgDemuxerPacket* msg;
+    uint8_t* data;
+    int size;
+    double dts;
+    double pts;
 
     void Attach(CDVDMsgDemuxerPacket* msg2)
     {
@@ -144,7 +144,7 @@ protected:
       data = p->pData;
       size = p->iSize;
       dts = p->dts;
-
+      pts = p->pts;
     }
     void Release()
     {
@@ -165,6 +165,7 @@ protected:
   bool m_stalled;
   bool m_silence;
   IDVDStreamPlayer::ESyncState m_syncState;
+  XbmcThreads::EndTime m_syncTimer;
 
   bool OutputPacket(DVDAudioFrame &audioframe);
 

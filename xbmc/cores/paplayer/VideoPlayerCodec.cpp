@@ -239,7 +239,7 @@ bool VideoPlayerCodec::Init(const std::string &strFile, unsigned int filecache)
   {
     m_bitRate = (int)(((m_pInputStream->GetLength()*1000) / m_TotalTime) * 8);
   }
-  m_pDemuxer->GetStreamCodecName(m_nAudioStream, m_CodecName);
+  m_CodecName = m_pDemuxer->GetStreamCodecName(m_nAudioStream);
 
   m_needConvert = false;
   if (NeedConvert(m_srcFormat.m_dataFormat))
@@ -395,7 +395,7 @@ int VideoPlayerCodec::ReadPCM(BYTE *pBuffer, int size, int *actualsize)
       m_audioPos = 0;
     }
 
-    decodeLen = m_pAudioCodec->Decode(m_pPacket->pData + m_audioPos, m_pPacket->iSize - m_audioPos);
+    decodeLen = m_pAudioCodec->Decode(m_pPacket->pData + m_audioPos, m_pPacket->iSize - m_audioPos, DVD_NOPTS_VALUE, DVD_NOPTS_VALUE);
 
     if (decodeLen < 0)
       m_audioPos = m_pPacket->iSize; // skip packet
@@ -471,7 +471,7 @@ int VideoPlayerCodec::ReadRaw(uint8_t **pBuffer, int *bufferSize)
       m_audioPos = 0;
     }
 
-    decodeLen = m_pAudioCodec->Decode(m_pPacket->pData + m_audioPos, m_pPacket->iSize - m_audioPos);
+    decodeLen = m_pAudioCodec->Decode(m_pPacket->pData + m_audioPos, m_pPacket->iSize - m_audioPos, DVD_NOPTS_VALUE, DVD_NOPTS_VALUE);
 
     if (decodeLen < 0)
       m_audioPos = m_pPacket->iSize; // skip packet

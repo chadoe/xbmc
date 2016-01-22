@@ -152,6 +152,8 @@ bool CVideoPlayerVideo::OpenStream( CDVDStreamInfo &hint )
 
 void CVideoPlayerVideo::OpenStream(CDVDStreamInfo &hint, CDVDVideoCodec* codec)
 {
+  CLog::Log(LOGDEBUG, "CVideoPlayerVideo::OpenStream - open stream with codec id: %i", hint.codec);
+
   //reported fps is usually not completely correct
   if (hint.fpsrate && hint.fpsscale)
     m_fFrameRate = DVD_TIME_BASE / CDVDCodecUtils::NormalizeFrameduration((double)DVD_TIME_BASE * hint.fpsscale / hint.fpsrate);
@@ -341,6 +343,7 @@ void CVideoPlayerVideo::Process()
         m_pVideoCodec->Reset();
       m_picture.iFlags &= ~DVP_FLAG_ALLOCATED;
       m_packets.clear();
+      pts = 0;
 
       m_pullupCorrection.Flush();
       //we need to recalculate the framerate
@@ -367,34 +370,31 @@ void CVideoPlayerVideo::Process()
         m_pVideoCodec->SetSpeed(m_speed);
       m_droppingStats.Reset();
     }
-    else if (pMsg->IsType(CDVDMsg::PLAYER_DISPLAYTIME))
-    {
-      SPlayerState& state = ((CDVDMsgType<SPlayerState>*)pMsg)->m_value;
-
-      if(state.time_src == ETIMESOURCE_CLOCK)
-      {
-        double pts = GetCurrentPts();
-        if (pts == DVD_NOPTS_VALUE)
-          pts = m_pClock->GetClock();
-        state.time = DVD_TIME_TO_MSEC(pts + state.time_offset);
-        state.disptime = state.time;
-        state.timestamp = CDVDClock::GetAbsoluteClock();
-      }
-      else
-        state.timestamp = CDVDClock::GetAbsoluteClock();
-      state.player = VideoPlayer_VIDEO;
-      m_messageParent.Put(pMsg->Acquire());
-    }
     else if (pMsg->IsType(CDVDMsg::GENERAL_STREAMCHANGE))
     {
       CDVDMsgVideoCodecChange* msg(static_cast<CDVDMsgVideoCodecChange*>(pMsg));
+
+      while (!m_bStop && m_pVideoCodec)
+      {
+        m_pVideoCodec->SetCodecControl(DVD_CODEC_CTRL_DRAIN);
+        int decoderState = m_pVideoCodec->Decode(NULL, 0, DVD_NOPTS_VALUE, DVD_NOPTS_VALUE);
+
+        bool cont = ProcessDecoderOutput(decoderState, frametime, pts);
+
+        if (!cont)
+          break;
+
+        if (decoderState & VC_BUFFER)
+          break;
+      }
+
       OpenStream(msg->m_hints, msg->m_codec);
       msg->m_codec = NULL;
       m_picture.iFlags &= ~DVP_FLAG_ALLOCATED;
     }
     else if (pMsg->IsType(CDVDMsg::VIDEO_DRAIN))
     {
-      while (!m_bStop)
+      while (!m_bStop && m_pVideoCodec)
       {
         m_pVideoCodec->SetCodecControl(DVD_CODEC_CTRL_DRAIN);
         int decoderState = m_pVideoCodec->Decode(NULL, 0, DVD_NOPTS_VALUE, DVD_NOPTS_VALUE);
@@ -570,6 +570,8 @@ bool CVideoPlayerVideo::ProcessDecoderOutput(int &decoderState, double &frametim
     m_pVideoCodec->ClearPicture(&m_picture);
     if (m_pVideoCodec->GetPicture(&m_picture))
     {
+      bool hasTimestamp = true;
+
       sPostProcessType.clear();
 
       if (m_picture.iDuration == 0.0)
@@ -584,7 +586,10 @@ bool CVideoPlayerVideo::ProcessDecoderOutput(int &decoderState, double &frametim
       // if both dts/pts invalid, use pts calulated from picture.iDuration
       // if pts invalid use dts, else use picture.pts as passed
       if (m_picture.dts == DVD_NOPTS_VALUE && m_picture.pts == DVD_NOPTS_VALUE)
+      {
         m_picture.pts = pts;
+        hasTimestamp = false;
+      }
       else if (m_picture.pts == DVD_NOPTS_VALUE)
         m_picture.pts = m_picture.dts;
 
@@ -613,10 +618,14 @@ bool CVideoPlayerVideo::ProcessDecoderOutput(int &decoderState, double &frametim
         pts = m_picture.pts;
       }
 
+      double extraDelay = 0.0;
       if (m_picture.iRepeatPicture)
-        m_picture.iDuration *= m_picture.iRepeatPicture + 1;
+      {
+        extraDelay = m_picture.iRepeatPicture * m_picture.iDuration;
+        m_picture.iDuration += extraDelay;
+      }
 
-      int iResult = OutputPicture(&m_picture, pts);
+      int iResult = OutputPicture(&m_picture, pts + extraDelay);
 
       frametime = (double)DVD_TIME_BASE / m_fFrameRate;
 
@@ -628,7 +637,7 @@ bool CVideoPlayerVideo::ProcessDecoderOutput(int &decoderState, double &frametim
         msg.player = VideoPlayer_VIDEO;
         msg.cachetime = DVD_MSEC_TO_TIME(50); // TODO
         msg.cachetotal = DVD_MSEC_TO_TIME(100); // TODO
-        msg.timestamp = pts;
+        msg.timestamp = hasTimestamp ? pts : DVD_NOPTS_VALUE;
         m_messageParent.Put(new CDVDMsgType<SStartMsg>(CDVDMsg::PLAYER_STARTED, msg));
       }
 

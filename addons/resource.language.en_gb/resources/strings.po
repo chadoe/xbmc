@@ -2540,6 +2540,7 @@ msgctxt "#574"
 msgid "Country"
 msgstr ""
 
+#: addons/skin.confluence/720p/IncludesHomeMenuItems.xml#L105
 #: xbmc/dialogs/GUIDialogMediaFilter.cpp
 #: xbmc/playlists/SmartPlaylist.cpp
 msgctxt "#575"
@@ -5593,6 +5594,7 @@ msgstr ""
 #: xbmc/peripherals/bus/PeripheralBus.cpp
 #: system/settings/settings.xml
 #: xbmc/pvr/timers/PVRTimerInfoTag.cpp
+#: xbmc/addons/GUIWindowAddonBrowser.cpp
 msgctxt "#13106"
 msgid "Disabled"
 msgstr ""
@@ -8837,8 +8839,13 @@ msgctxt "#19097"
 msgid "Enter the name for the recording"
 msgstr ""
 
+#: xbmc/addons/AddonSystemSettings.cpp
+#: xbmc/cores/AudioEngine/DSPAddons/ActiveAEDSP.cpp
+#: xbmc/pvr/channels/PVRChannelGroupInternal.cpp
+#: xbmc/pvr/PVRManager.cpp
+#: xbmc/settings/dialogs/GUIDialogAudioDSPManager.cpp:
 msgctxt "#19098"
-msgid "Warning"
+msgid "Warning!"
 msgstr ""
 
 #: xbmc/pvr/PVRGUIInfo.cpp
@@ -11429,8 +11436,10 @@ msgctxt "#20349"
 msgid "No video files found in this path!"
 msgstr ""
 
+#. Label for showing media rating and votes (combined), for example: "9.1 (87 votes)"
+#: xbmc/GUIInfoManager.cpp
 msgctxt "#20350"
-msgid "votes"
+msgid "%.1f (%i votes)"
 msgstr ""
 
 #: xbmc/video/jobs/VideoLibraryRefreshingJob.cpp
@@ -14110,6 +14119,7 @@ msgstr ""
 
 #. Concert composer of the music (if present)
 #: addons/skin.confluence/720p/DialogPVRRadioRDSInfo.xml
+#: addons/skin.confluence/720p/DialogSongInfo.xml
 msgctxt "#29903"
 msgid "Composer"
 msgstr ""
@@ -14122,6 +14132,7 @@ msgstr ""
 
 #. Conductor of the classic music (if present)
 #: addons/skin.confluence/720p/DialogPVRRadioRDSInfo.xml
+#: addons/skin.confluence/720p/DialogSongInfo.xml
 msgctxt "#29905"
 msgid "Conductor"
 msgstr ""
@@ -17809,7 +17820,31 @@ msgctxt "#36614"
 msgid "Show add-ons that are currently running in the background."
 msgstr ""
 
-#empty strings from id 36615 to 36899
+#. Label of a setting or option referring to the source/origin of e.g. add-ons.
+#: system/settings/settings.xml
+msgctxt "#36615"
+msgid "Unknown sources"
+msgstr ""
+
+#. Description of setting "System -> Add-ons -> Unknown sources" with label #36615
+#: system/settings/settings.xml
+msgctxt "#36616"
+msgid "Allow installation of add-ons from unknown sources."
+msgstr ""
+
+#. Text in warning dialog when attempting to install add-ons from zip file.
+#: xbmc/addons/GUIWindowAddonBrowser.cpp
+msgctxt "#36617"
+msgid "For security, installation of add-ons from unknown sources is disabled."
+msgstr ""
+
+#. Text in confirm dialog when enabling setting "System -> Add-ons -> Unknown sources"
+#: xbmc/addons/AddonSystemSettings.cpp
+msgctxt "#36618"
+msgid "Add-ons will be given access to personal data stored on this device. By allowing, you agree that you are solely responsible for any loss of data, unwanted behaviour, or damage to your device. Proceed?"
+msgstr ""
+
+#empty strings from id 36619 to 36899
 
 #: xbmc/media/MediaType.cpp
 msgctxt "#36900"
@@ -18232,3 +18267,69 @@ msgstr ""
 msgctxt "#38030"
 msgid "This option uses frame-packing to output full resolution for 3D through HDMI.[CR]Enabling this improves quality of Multiview Video Coding (MVC) videos, but may not be supported by all displays."
 msgstr ""
+
+#. Label for an option to select the video stream to play if current video has more than one video stream
+#: xbmc\video\dialogs\GUIDialogVideoSettings.cpp
+msgctxt "#38031"
+msgid "Video stream"
+msgstr ""
+
+#. Label for an option to select the angle to play if current disc has more than one angle
+#: xbmc\video\dialogs\GUIDialogVideoSettings.cpp
+msgctxt "#38032"
+msgid "Angle"
+msgstr ""
+
+#: xbmc/dialogs/GUIDialogSmartPlaylistRule.cpp
+#: xbmc/playlists/SmartPlaylist.cpp
+msgctxt "#38033"
+msgid "Role"
+msgstr ""
+
+#. Orchestra playing on the recording (if present)
+#: addons/skin.confluence/720p/DialogSongInfo.xml
+msgctxt "#38034"
+msgid "Orchestra"
+msgstr ""
+
+#. Lyricist that wrote the lyrics of the song (if present)
+#: addons/skin.confluence/720p/DialogSongInfo.xml
+msgctxt "#38035"
+msgid "Lyricist"
+msgstr ""
+
+#. Remixer of the song (if present)
+#: addons/skin.confluence/720p/DialogSongInfo.xml
+msgctxt "#38036"
+msgid "Remixer"
+msgstr "" 
+
+#. Arranger of the song (if present)
+#: addons/skin.confluence/720p/DialogSongInfo.xml
+msgctxt "#38037"
+msgid "Arranger"
+msgstr "" 
+
+#. Engineer of the song (if present)
+#: addons/skin.confluence/720p/DialogSongInfo.xml
+msgctxt "#38038"
+msgid "Engineer"
+msgstr "" 
+
+#. Producer of the song (if present)
+#: addons/skin.confluence/720p/DialogSongInfo.xml
+msgctxt "#38039"
+msgid "Producer"
+msgstr "" 
+
+#. DJMixer of the song (if present)
+#: addons/skin.confluence/720p/DialogSongInfo.xml
+msgctxt "#38040"
+msgid "DJMixer"
+msgstr "" 
+
+#. Mixer of the song (if present)
+#: addons/skin.confluence/720p/DialogSongInfo.xml
+msgctxt "#38041"
+msgid "Mixer"
+msgstr "" 

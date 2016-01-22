@@ -66,7 +66,7 @@ void CRepositoryUpdater::OnJobComplete(unsigned int jobID, bool success, CJob* j
 
     if (CSettings::GetInstance().GetInt(CSettings::SETTING_ADDONS_AUTOUPDATES) == AUTO_UPDATES_NOTIFY)
     {
-      VECADDONS updates = CAddonInstaller::GetInstance().GetAvailableUpdates();
+      VECADDONS updates = CAddonMgr::GetInstance().GetAvailableUpdates();
       if (!updates.empty())
       {
         if (updates.size() == 1)
@@ -96,7 +96,7 @@ void CRepositoryUpdater::OnJobComplete(unsigned int jobID, bool success, CJob* j
 void CRepositoryUpdater::CheckForUpdates(bool showProgress)
 {
   VECADDONS addons;
-  if (CAddonMgr::GetInstance().GetAddons(ADDON_REPOSITORY, addons) && !addons.empty())
+  if (CAddonMgr::GetInstance().GetAddons(addons, ADDON_REPOSITORY) && !addons.empty())
   {
     CSingleLock lock(m_criticalSection);
     for (const auto& addon : addons)
@@ -162,7 +162,7 @@ void CRepositoryUpdater::OnSettingChanged(const CSetting* setting)
 CDateTime CRepositoryUpdater::LastUpdated() const
 {
   VECADDONS repos;
-  if (!CAddonMgr::GetInstance().GetAddons(ADDON_REPOSITORY, repos) || repos.empty())
+  if (!CAddonMgr::GetInstance().GetAddons(repos, ADDON_REPOSITORY) || repos.empty())
     return CDateTime();
 
   CAddonDatabase db;

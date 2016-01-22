@@ -2110,6 +2110,9 @@
             <step>1</step>
             <maximum>65535</maximum>
           </constraints>
+          <updates>
+            <update type="change" />
+          </updates>
           <control type="edit" format="integer" />
         </setting>
         <setting id="services.webserverusername" type="string" parent="services.webserver" label="1048" help="36330">
@@ -2917,6 +2920,11 @@
           <dependencies>
             <dependency type="enable" setting="general.addonupdates">0</dependency>
           </dependencies>
+        </setting>
+        <setting id="addons.unknownsources" type="boolean" label="36615" help="36616">
+          <level>1</level>
+          <default>false</default>
+          <control type="toggle" />
         </setting>
       </group>
       <group id="2">

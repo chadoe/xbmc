@@ -408,7 +408,7 @@ namespace XBMCAddon
             item->GetVideoInfoTag()->m_dateAdded.SetFromDBDateTime(value.c_str());
           else if (key == "mediatype")
           {
-            if (MediaTypes::IsValidMediaType(value))
+            if (CMediaTypes::IsValidMediaType(value))
               item->GetVideoInfoTag()->m_type = value;
             else
               CLog::Log(LOGWARNING, "Invalid media type \"%s\"", value.c_str());
@@ -551,6 +551,8 @@ namespace XBMCAddon
             video->m_iDuration = strtol(value.c_str(), NULL, 10);
           else if (key == "stereomode")
             video->m_strStereoMode = value;
+          else if (key == "language")
+            video->m_strLanguage = value;
         }
         item->GetVideoInfoTag()->m_streamDetails.AddStream(video);
       }

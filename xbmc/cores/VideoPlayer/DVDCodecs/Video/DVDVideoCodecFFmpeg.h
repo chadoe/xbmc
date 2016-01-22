@@ -96,6 +96,7 @@ protected:
   }
 
   AVFrame* m_pFrame;
+  AVFrame* m_pDecodedFrame;
   AVCodecContext* m_pCodecContext;
 
   std::string       m_filters;
@@ -104,6 +105,7 @@ protected:
   AVFilterContext* m_pFilterIn;
   AVFilterContext* m_pFilterOut;
   AVFrame*         m_pFilterFrame;
+  bool m_filterEof;
 
   int m_iPictureWidth;
   int m_iPictureHeight;

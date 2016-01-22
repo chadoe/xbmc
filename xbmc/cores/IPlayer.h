@@ -288,6 +288,11 @@ public:
   virtual void SetAudioStream(int iStream){};
   virtual void GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info){};
 
+  virtual int GetVideoStream() const { return -1; }
+  virtual int GetVideoStreamCount() const { return 0; }
+  virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo &info) {}
+  virtual void SetVideoStream(int iStream) {}
+
   virtual TextCacheStruct_t* GetTeletextCache() { return NULL; };
   virtual void LoadPage(int p, int sp, unsigned char* buffer) {};
 
@@ -321,10 +326,6 @@ public:
    */
   virtual void SetTime(int64_t time) { }
   /*!
-   \brief time of frame on screen in milliseconds
-   */
-  virtual int64_t GetDisplayTime() { return GetTime(); }
-  /*!
    \brief total time in milliseconds
    */
   virtual int64_t GetTotalTime() { return 0; }
@@ -334,7 +335,6 @@ public:
    its not available in the underlaying decoder (airtunes for example)
    */
   virtual void SetTotalTime(int64_t time) { }
-  virtual void GetVideoStreamInfo(SPlayerVideoStreamInfo &info){};
   virtual int GetSourceBitrate(){ return 0;}
   virtual bool GetStreamDetails(CStreamDetails &details){ return false;}
   virtual void ToFFRW(int iSpeed = 0){};
@@ -347,7 +347,7 @@ public:
   virtual int GetCacheLevel() const {return -1;};
 
   virtual bool IsInMenu() const {return false;};
-  virtual bool HasMenu() { return false; };
+  virtual bool HasMenu() const { return false; };
 
   virtual void DoAudioWork(){};
   virtual bool OnAction(const CAction &action) { return false; };

@@ -109,7 +109,6 @@ public:
   int source;
   double dts;    // last dts from demuxer, used to find disncontinuities
   double dur;    // last frame expected duration
-  double dts_state; // when did we last send a playback state update
   CDVDStreamInfo hint;   // stream hints, used to notice stream changes
   void* stream; // pointer or integer, identifying stream playing. if it changes stream changed
   int changes; // remembered counter from stream to track codec changes
@@ -125,6 +124,14 @@ public:
   double startpts;
   double lastdts;
 
+  enum
+  {
+    AV_SYNC_NONE,
+    AV_SYNC_CHECK,
+    AV_SYNC_CONT,
+    AV_SYNC_FORCE
+  } avsync;
+
   CCurrentStream(StreamType t, int i)
     : type(t)
     , player(i)
@@ -137,7 +144,6 @@ public:
     id = -1;
     source = STREAM_SOURCE_NONE;
     dts = DVD_NOPTS_VALUE;
-    dts_state = DVD_NOPTS_VALUE;
     dur = DVD_NOPTS_VALUE;
     hint.Clear();
     stream = NULL;
@@ -148,6 +154,7 @@ public:
     starttime = DVD_NOPTS_VALUE;
     startpts = DVD_NOPTS_VALUE;
     lastdts = DVD_NOPTS_VALUE;
+    avsync = AV_SYNC_FORCE;
   }
 
   double dts_end()
@@ -198,7 +205,7 @@ public:
   CCriticalSection m_section;
 
   int              IndexOf (StreamType type, int source, int id) const;
-  int              IndexOf (StreamType type, CVideoPlayer& p) const;
+  int              IndexOf (StreamType type, const CVideoPlayer& p) const;
   int              Count   (StreamType type) const { return IndexOf(type, STREAM_SOURCE_NONE, -1) + 1; }
   int              CountSource(StreamType type, StreamSource source) const;
   SelectionStream& Get     (StreamType type, int index);
@@ -252,6 +259,8 @@ public:
   virtual bool Record(bool bOnOff);
   virtual void SetAVDelay(float fValue = 0.0f);
   virtual float GetAVDelay();
+  virtual bool IsInMenu() const override;
+  virtual bool HasMenu() const override;
 
   virtual void SetSubTitleDelay(float fValue = 0.0f);
   virtual float GetSubTitleDelay();
@@ -267,6 +276,11 @@ public:
   virtual int GetAudioStream();
   virtual void SetAudioStream(int iStream);
 
+  virtual int GetVideoStream() const override;
+  virtual int GetVideoStreamCount() const override;
+  virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo &info) override;
+  virtual void SetVideoStream(int iStream);
+
   virtual TextCacheStruct_t* GetTeletextCache();
   virtual void LoadPage(int p, int sp, unsigned char* buffer);
 
@@ -281,14 +295,11 @@ public:
   virtual void SeekTime(int64_t iTime);
   virtual bool SeekTimeRelative(int64_t iTime);
   virtual int64_t GetTime();
-  virtual int64_t GetDisplayTime();
   virtual int64_t GetTotalTime();
   virtual void ToFFRW(int iSpeed);
   virtual bool OnAction(const CAction &action);
-  virtual bool HasMenu();
 
   virtual int GetSourceBitrate();
-  virtual void GetVideoStreamInfo(SPlayerVideoStreamInfo &info);
   virtual bool GetStreamDetails(CStreamDetails &details);
   virtual void GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info);
   virtual void UpdateStreamInfos();
@@ -398,12 +409,12 @@ protected:
 
   void HandleMessages();
   void HandlePlaySpeed();
-  bool IsInMenu() const;
+  bool IsInMenuInternal() const;
 
   void SynchronizePlayers(unsigned int sources);
   void SynchronizeDemuxer(unsigned int timeout);
   void CheckAutoSceneSkip();
-  void CheckContinuity(CCurrentStream& current, DemuxPacket* pPacket);
+  bool CheckContinuity(CCurrentStream& current, DemuxPacket* pPacket);
   bool CheckSceneSkip(CCurrentStream& current);
   bool CheckPlayerInit(CCurrentStream& current);
   void UpdateCorrection(DemuxPacket* pkt, double correction);
@@ -481,6 +492,7 @@ protected:
       state                =  DVDSTATE_NORMAL;
       iSelectedSPUStream   = -1;
       iSelectedAudioStream = -1;
+      iSelectedVideoStream = -1;
       iDVDStillTime        =  0;
       iDVDStillStartTime   =  0;
       syncClock = false;
@@ -492,6 +504,7 @@ protected:
     unsigned int iDVDStillStartTime; // time in ticks when we started the still
     int iSelectedSPUStream;   // mpeg stream id, or -1 if disabled
     int iSelectedAudioStream; // mpeg stream id, or -1 if disabled
+    int iSelectedVideoStream; // mpeg stream id or angle, -1 if disabled
   } m_dvd;
 
   friend class CVideoPlayerVideo;
@@ -501,7 +514,7 @@ protected:
   friend class OMXPlayerAudio;
 #endif
 
-  SPlayerState m_State, m_StateInput;
+  SPlayerState m_State;
   CCriticalSection m_StateSection;
   XbmcThreads::EndTime m_syncTimer;
 

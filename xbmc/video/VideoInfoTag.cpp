@@ -96,6 +96,7 @@ void CVideoInfoTag::Reset()
   m_dateAdded.Reset();
   m_type.clear();
   m_relevance = -1;
+  m_hasDetails = false;
 }
 
 bool CVideoInfoTag::Save(TiXmlNode *node, const std::string &tag, bool savePathInfo, const TiXmlElement *additionalNode)
@@ -624,7 +625,7 @@ void CVideoInfoTag::ToSortable(SortItem& sortable, Field field) const
   case FieldNumberOfWatchedEpisodes:  sortable[FieldNumberOfWatchedEpisodes] = m_iEpisode; break;
   case FieldEpisodeNumberSpecialSort: sortable[FieldEpisodeNumberSpecialSort] = m_iSpecialSortEpisode; break;
   case FieldSeasonSpecialSort:        sortable[FieldSeasonSpecialSort] = m_iSpecialSortSeason; break;
-  case FieldRating:                   sortable[FieldVotes] = GetRating().votes; break;
+  case FieldRating:                   sortable[FieldRating] = GetRating().rating; break;
   case FieldUserRating:               sortable[FieldUserRating] = m_iUserRating; break;
   case FieldId:                       sortable[FieldId] = m_iDbId; break;
   case FieldTrackNumber:              sortable[FieldTrackNumber] = m_iTrack; break;
@@ -678,6 +679,7 @@ const std::string CVideoInfoTag::GetCast(bool bIncludeRole /*= false*/) const
 void CVideoInfoTag::ParseNative(const TiXmlElement* movie, bool prioritise)
 {
   std::string value;
+  float fValue;
 
   if (XMLUtils::GetString(movie, "title", value))
     SetTitle(value);
@@ -711,10 +713,9 @@ void CVideoInfoTag::ParseNative(const TiXmlElement* movie, bool prioritise)
         m_strDefaultRating = name;
     }
   }
-  else
+  else if (XMLUtils::GetFloat(movie, "rating", fValue))
   {
-    CRating r;
-    XMLUtils::GetFloat(movie, "rating", r.rating);
+    CRating r(fValue, 0);
     if (XMLUtils::GetString(movie, "votes", value))
       r.votes = StringUtils::ReturnDigits(value);
     int max_value = 10;
@@ -971,9 +972,12 @@ void CVideoInfoTag::ParseNative(const TiXmlElement* movie, bool prioritise)
         XMLUtils::GetInt(nodeDetail, "durationinseconds", p->m_iDuration);
         if (XMLUtils::GetString(nodeDetail, "stereomode", value))
           p->m_strStereoMode = StringUtils::Trim(value);
+        if (XMLUtils::GetString(nodeDetail, "language", value))
+          p->m_strLanguage = StringUtils::Trim(value);
 
         StringUtils::ToLower(p->m_strCodec);
         StringUtils::ToLower(p->m_strStereoMode);
+        StringUtils::ToLower(p->m_strLanguage);
         m_streamDetails.AddStream(p);
       }
       nodeDetail = NULL;
