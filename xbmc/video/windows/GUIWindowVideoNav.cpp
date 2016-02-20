@@ -1304,8 +1304,9 @@ bool CGUIWindowVideoNav::ApplyWatchedFilter(CFileItemList &items)
 
     if (filterWatched)
     {
-      if((watchMode==WatchedModeWatched   && item->GetVideoInfoTag()->m_playCount== 0)
-      || (watchMode==WatchedModeUnwatched && item->GetVideoInfoTag()->m_playCount > 0))
+      if(!item->IsParentFolder() && // Don't delete the go to parent folder
+         ((watchMode == WatchedModeWatched   && item->GetVideoInfoTag()->m_playCount == 0) ||
+          (watchMode == WatchedModeUnwatched && item->GetVideoInfoTag()->m_playCount > 0)))
       {
         items.Remove(i);
         i--;
@@ -1313,6 +1314,10 @@ bool CGUIWindowVideoNav::ApplyWatchedFilter(CFileItemList &items)
       }
     }
   }
+
+  // Remove the parent folder icon, if it's the only thing in the folder. This is needed for hiding seasons.
+  if (items.GetObjectCount() == 0 && items.Get(0)->IsParentFolder())
+      items.Remove(0);
 
   if(node == NODE_TYPE_TITLE_TVSHOWS || node == NODE_TYPE_SEASONS)
   {
