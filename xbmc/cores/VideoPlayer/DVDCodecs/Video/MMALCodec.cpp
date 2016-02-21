@@ -145,7 +145,6 @@ CMMALVideo::~CMMALVideo()
 
   if (m_dec_input && m_dec_input->is_enabled)
     mmal_port_disable(m_dec_input);
-  m_dec_input = NULL;
 
   if (m_dec_output && m_dec_output->is_enabled)
     mmal_port_disable(m_dec_output);
@@ -162,8 +161,9 @@ CMMALVideo::~CMMALVideo()
       mmal_component_disable(m_dec);
 
   if (m_dec_input_pool)
-    mmal_pool_destroy(m_dec_input_pool);
+    mmal_port_pool_destroy(m_dec_input, m_dec_input_pool);
   m_dec_input_pool = NULL;
+  m_dec_input = NULL;
 
   if (m_deint)
     mmal_component_destroy(m_deint);
@@ -666,7 +666,7 @@ bool CMMALVideo::Open(CDVDStreamInfo &hints, CDVDCodecOptions &options)
 
   // limit number of callback structures in video_decode to reduce latency. Too low and video hangs.
   // negative numbers have special meaning. -1=size of DPB -2=size of DPB+1
-  status = mmal_port_parameter_set_uint32(m_dec_input, MMAL_PARAMETER_VIDEO_MAX_NUM_CALLBACKS, -3);
+  status = mmal_port_parameter_set_uint32(m_dec_input, MMAL_PARAMETER_VIDEO_MAX_NUM_CALLBACKS, -5);
   if (status != MMAL_SUCCESS)
     CLog::Log(LOGERROR, "%s::%s Failed to configure max num callbacks on %s (status=%x %s)", CLASSNAME, __func__, m_dec_input->name, status, mmal_status_to_string(status));
 
