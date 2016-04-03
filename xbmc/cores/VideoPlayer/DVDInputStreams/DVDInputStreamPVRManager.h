@@ -24,15 +24,10 @@
 * for DESCRIPTION see 'DVDInputStreamPVRManager.cpp'
 */
 
+#include <vector>
 #include "DVDInputStream.h"
 #include "FileItem.h"
 #include "threads/SystemClock.h"
-
-namespace XFILE {
-class IFile;
-class ILiveTVInterface;
-class IRecordable;
-}
 
 class IVideoPlayer;
 struct PVR_STREAM_PROPERTIES;
@@ -49,7 +44,7 @@ class CDVDInputStreamPVRManager
   , public CDVDInputStream::IDemux
 {
 public:
-  CDVDInputStreamPVRManager(IVideoPlayer* pPlayer, CFileItem& fileitem);
+  CDVDInputStreamPVRManager(IVideoPlayer* pPlayer, const CFileItem& fileitem);
   virtual ~CDVDInputStreamPVRManager();
   virtual bool Open() override;
   virtual void Close() override;
@@ -102,33 +97,30 @@ public:
   virtual CDVDInputStream::IDemux* GetIDemux() override;
   virtual bool OpenDemux() override;
   virtual DemuxPacket* ReadDemux() override;
-  virtual CDemuxStream* GetStream(int iStreamId) override;
-  virtual int GetNrOfStreams() override;
+  virtual CDemuxStream* GetStream(int iStreamId) const override;
+  virtual std::vector<CDemuxStream*> GetStreams() const override;
+  virtual int GetNrOfStreams() const override;
   virtual void SetSpeed(int iSpeed) override;
   virtual bool SeekTime(int time, bool backward = false, double* startpts = NULL) override;
   virtual void AbortDemux() override;
   virtual void FlushDemux() override;
+  virtual void EnableStream(int iStreamId, bool enable) override {};
 
 protected:
   bool CloseAndOpen(const char* strFile);
-
+  void UpdateStreamMap();
+  std::string ThisIsAHack(const std::string& pathFile);
+  std::shared_ptr<CDemuxStream> GetStreamInternal(int iStreamId);
   IVideoPlayer* m_pPlayer;
   CDVDInputStream* m_pOtherStream;
-  XFILE::IFile* m_pFile;
-  XFILE::ILiveTVInterface* m_pLiveTV;
-  XFILE::IRecordable* m_pRecordable;
   bool m_eof;
   bool m_demuxActive;
   std::string m_strContent;
   XbmcThreads::EndTime m_ScanTimeout;
   bool m_isOtherStreamHack;
   PVR_STREAM_PROPERTIES *m_StreamProps;
-  CDemuxStreamAudio *m_streamAudio;
-  CDemuxStreamVideo *m_streamVideo;
-  CDemuxStreamSubtitle *m_streamSubtitle;
-  CDemuxStreamTeletext *m_streamTeletext;
-  CDemuxStreamRadioRDS *m_streamRadioRDS;
-  CDemuxStream *m_streamDefault;
+  std::map<int, std::shared_ptr<CDemuxStream>> m_streamMap;
+  bool m_isRecording;
 };
 
 

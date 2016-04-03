@@ -21,6 +21,7 @@
  */
 
 #include "DVDInputStream.h"
+#include "DVDDemuxers/DVDDemux.h"
 #include "../IVideoPlayer.h"
 #include "../DVDCodecs/Overlay/DVDOverlaySpu.h"
 #include <string>
@@ -108,7 +109,7 @@ class CDVDInputStreamNavigator
   , public CDVDInputStream::IMenus
 {
 public:
-  CDVDInputStreamNavigator(IVideoPlayer* player, CFileItem& fileitem);
+  CDVDInputStreamNavigator(IVideoPlayer* player, const CFileItem& fileitem);
   virtual ~CDVDInputStreamNavigator();
 
   virtual bool Open();
