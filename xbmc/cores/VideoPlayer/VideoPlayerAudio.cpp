@@ -24,7 +24,6 @@
 #include "DVDCodecs/DVDFactoryCodec.h"
 #include "DVDDemuxers/DVDDemuxPacket.h"
 #include "settings/Settings.h"
-#include "video/VideoReferenceClock.h"
 #include "utils/log.h"
 #include "utils/MathUtils.h"
 #include "cores/AudioEngine/AEFactory.h"
@@ -569,18 +568,6 @@ void CVideoPlayerAudio::Flush(bool sync)
   m_messageQueue.Put( new CDVDMsgBool(CDVDMsg::GENERAL_FLUSH, sync), 1);
 
   m_dvdAudio.AbortAddPackets();
-}
-
-void CVideoPlayerAudio::WaitForBuffers()
-{
-  // make sure there are no more packets available
-  m_messageQueue.WaitUntilEmpty();
-
-  // make sure almost all has been rendered
-  // leave 500ms to avound buffer underruns
-  double delay = m_dvdAudio.GetCacheTime();
-  if(delay > 0.5)
-    Sleep((int)(1000 * (delay - 0.5)));
 }
 
 bool CVideoPlayerAudio::AcceptsData() const

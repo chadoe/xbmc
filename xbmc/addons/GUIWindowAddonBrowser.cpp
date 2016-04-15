@@ -212,7 +212,7 @@ bool CGUIWindowAddonBrowser::OnClick(int iItem, const std::string &player)
   if (item->IsPath("addons://search/"))
     return Update(item->GetPath());
 
-  return CGUIMediaWindow::OnClick(iItem);
+  return CGUIMediaWindow::OnClick(iItem, player);
 }
 
 void CGUIWindowAddonBrowser::UpdateButtons()
@@ -431,6 +431,7 @@ int CGUIWindowAddonBrowser::SelectAddonID(const std::vector<ADDON::TYPE> &types,
   for (ADDON::IVECADDONS addon = addons.begin(); addon != addons.end(); ++addon)
   {
     CFileItemPtr item(CAddonsDirectory::FileItemFromAddon(*addon, (*addon)->ID()));
+    item->SetLabel2((*addon)->Summary());
     if (!items.Contains(item->GetPath()))
     {
       items.Add(item);

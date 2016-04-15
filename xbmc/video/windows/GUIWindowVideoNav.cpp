@@ -30,6 +30,7 @@
 #include "PartyModeManager.h"
 #include "music/MusicDatabase.h"
 #include "guilib/GUIWindowManager.h"
+#include "dialogs/GUIDialogMediaSource.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "filesystem/Directory.h"
 #include "FileItem.h"
@@ -838,9 +839,6 @@ void CGUIWindowVideoNav::GetContextButtons(int itemNumber, CContextButtons &butt
 
   CGUIWindowVideoBase::GetContextButtons(itemNumber, buttons);
 
-  if (item && item->GetProperty("pluginreplacecontextitems").asBoolean())
-    return;
-
   CVideoDatabaseDirectory dir;
   NODE_TYPE node = dir.GetDirectoryChildType(m_vecItems->GetPath());
 
@@ -852,9 +850,6 @@ void CGUIWindowVideoNav::GetContextButtons(int itemNumber, CContextButtons &butt
   {
     // get the usual shares
     CGUIDialogContextMenu::GetContextButtons("video", item, buttons);
-    // add scan button somewhere here
-    if (g_application.IsVideoScanning())
-      buttons.Add(CONTEXT_BUTTON_STOP_SCANNING, 13353);  // Stop Scanning
     if (!item->IsDVD() && item->GetPath() != "add" && !item->IsParentFolder() &&
         (CProfilesManager::GetInstance().GetCurrentProfile().canWriteDatabases() || g_passwordManager.bMasterUser))
     {
@@ -929,9 +924,6 @@ void CGUIWindowVideoNav::GetContextButtons(int itemNumber, CContextButtons &butt
         }
         if (node == NODE_TYPE_TITLE_TVSHOWS)
         {
-          if (g_application.IsVideoScanning())
-            buttons.Add(CONTEXT_BUTTON_STOP_SCANNING, 13353);
-
             buttons.Add(CONTEXT_BUTTON_SCAN, 13349);
         }
 
@@ -1083,6 +1075,11 @@ bool CGUIWindowVideoNav::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
 
   }
   return CGUIWindowVideoBase::OnContextButton(itemNumber, button);
+}
+
+bool CGUIWindowVideoNav::OnAddMediaSource()
+{
+  return CGUIDialogMediaSource::ShowAndAddMediaSource("video");
 }
 
 bool CGUIWindowVideoNav::OnClick(int iItem, const std::string &player)

@@ -66,7 +66,7 @@ namespace XBMCAddon
       { XBMC_TRACE; if(up()) CGUIMediaWindow::AllocResources(forceLoad); else checkedv(AllocResources(forceLoad)); }
       virtual  void FreeResources(bool forceUnLoad = false)
       { XBMC_TRACE; if(up()) CGUIMediaWindow::FreeResources(forceUnLoad); else checkedv(FreeResources(forceUnLoad)); }
-      virtual bool OnClick(int iItem) { XBMC_TRACE; return up() ? CGUIMediaWindow::OnClick(iItem) : checkedb(OnClick(iItem)); }
+      virtual bool OnClick(int iItem, const std::string &player = "") override { XBMC_TRACE; return up() ? CGUIMediaWindow::OnClick(iItem, player) : checkedb(OnClick(iItem)); }
 
       virtual void Process(unsigned int currentTime, CDirtyRegionList &dirtyregions)
       { XBMC_TRACE; if(up()) CGUIMediaWindow::Process(currentTime,dirtyregions); else checkedv(Process(currentTime,dirtyregions)); }
@@ -319,6 +319,10 @@ namespace XBMCAddon
         }
         break;
 
+      case GUI_MSG_NOTIFY_ALL:
+        // GUI_MSG_NOTIFY_ALL breaks container content, so intercept it.
+        return true;
+
       case GUI_MSG_CLICKED:
         {
           int iControl=message.GetSenderId();
@@ -370,6 +374,9 @@ namespace XBMCAddon
                 PulseActionEvent();
                 return true;
               }
+              // the core context menu can lead to all sort of issues right now when used with WindowXMLs, so lets intercept the corresponding message
+              else if (controlClicked->IsContainer() && message.GetParam1() == ACTION_CONTEXT_MENU)
+                return true;
             }
           }
         }

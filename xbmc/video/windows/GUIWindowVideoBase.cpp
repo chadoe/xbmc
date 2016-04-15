@@ -819,7 +819,7 @@ void CGUIWindowVideoBase::GetContextButtons(int itemNumber, CContextButtons &but
     item = m_vecItems->Get(itemNumber);
 
   // contextual buttons
-  if (item && !item->GetProperty("pluginreplacecontextitems").asBoolean())
+  if (item)
   {
     if (!item->IsParentFolder())
     {
@@ -1016,12 +1016,6 @@ bool CGUIWindowVideoBase::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
   case CONTEXT_BUTTON_PLAY_PARTYMODE:
     g_partyModeManager.Enable(PARTYMODECONTEXT_VIDEO, m_vecItems->Get(itemNumber)->GetPath());
     return true;
-
-  case CONTEXT_BUTTON_STOP_SCANNING:
-    {
-      g_application.StopVideoScan();
-      return true;
-    }
 
   case CONTEXT_BUTTON_SCAN:
     {

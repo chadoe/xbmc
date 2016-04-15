@@ -104,6 +104,10 @@
 static CLinuxResourceCounter m_resourceCounter;
 #endif
 
+#ifdef TARGET_POSIX
+#include "linux/XMemUtils.h"
+#endif
+
 #define SYSHEATUPDATEINTERVAL 60000
 
 using namespace XFILE;
@@ -3757,6 +3761,7 @@ const infomap listitem_labels[]= {{ "thumb",            LISTITEM_THUMB },
                                   { "discnumber",       LISTITEM_DISC_NUMBER },
                                   { "starttime",        LISTITEM_STARTTIME },
                                   { "endtime",          LISTITEM_ENDTIME },
+                                  { "endtimeresume",    LISTITEM_ENDTIME_RESUME },
                                   { "startdate",        LISTITEM_STARTDATE },
                                   { "enddate",          LISTITEM_ENDDATE },
                                   { "nexttitle",        LISTITEM_NEXT_TITLE },
@@ -5716,7 +5721,7 @@ std::string CGUIInfoManager::GetLabel(int info, int contextWindow, std::string *
   case ADSP_MASTER_INFO:
   case ADSP_MASTER_OWN_ICON:
   case ADSP_MASTER_OVERRIDE_ICON:
-    ActiveAE::CActiveAEDSP::GetInstance().TranslateCharInfo(info, strLabel);
+    CServiceBroker::GetADSP().TranslateCharInfo(info, strLabel);
     break;
   case WEATHER_CONDITIONS:
     strLabel = g_weatherManager.GetInfo(WEATHER_LABEL_CURRENT_COND);
@@ -6732,7 +6737,7 @@ bool CGUIInfoManager::GetBool(int condition1, int contextWindow, const CGUIListI
   else if (condition >= PVR_CONDITIONS_START && condition <= PVR_CONDITIONS_END)
     bReturn = g_PVRManager.TranslateBoolInfo(condition);
   else if (condition >= ADSP_CONDITIONS_START && condition <= ADSP_CONDITIONS_END)
-    bReturn = ActiveAE::CActiveAEDSP::GetInstance().TranslateBoolInfo(condition);
+    bReturn = CServiceBroker::GetADSP().TranslateBoolInfo(condition);
   else if (condition == SYSTEM_INTERNET_STATE)
   {
     g_sysinfo.GetInfo(condition);
@@ -9881,6 +9886,14 @@ std::string CGUIInfoManager::GetItemLabel(const CFileItem *item, int info, std::
       return item->GetPVRRecordingInfoTag()->RecordingTimeAsLocalTime().GetAsLocalizedTime("", false);
     if (item->m_dateTime.IsValid())
       return item->m_dateTime.GetAsLocalizedTime("", false);
+    break;
+  case LISTITEM_ENDTIME_RESUME:
+    if (item->HasVideoInfoTag())
+    {
+      auto* tag = item->GetVideoInfoTag();
+      CDateTimeSpan duration(0, 0, 0, tag->GetDuration() - tag->m_resumePoint.timeInSeconds);
+      return (CDateTime::GetCurrentDateTime() + duration).GetAsLocalizedTime("", false);
+    }
     break;
   case LISTITEM_ENDTIME:
     if (item->HasPVRChannelInfoTag())
