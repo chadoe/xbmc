@@ -875,6 +875,10 @@ void CAESinkAUDIOTRACK::UpdateAvailablePassthroughCapabilities()
         m_info.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_TRUEHD);
       }
     }
+    // PCM HACK
+    CLog::Log(LOGWARNING, "Using PCM passthrough workaround.");
+    CJNIAudioFormat::ENCODING_IEC61937 = CJNIAudioFormat::ENCODING_PCM_16BIT;
+
     // Android v24 and backports can do real IEC API
     if (CJNIAudioFormat::ENCODING_IEC61937 != -1)
     {
